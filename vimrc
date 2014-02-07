@@ -16,10 +16,6 @@ set history=50		" keep 50 lines of command line history
 set ruler		" show the cursor position all the time
 set autoread		" auto read when file is changed from outside
 
-" Ctags recursive search
-set tags=./tags;/
-
-:set colorcolumn=81
 
 set rtp+=~/.vim/bundle/vundle/
 call vundle#rc()
@@ -104,13 +100,9 @@ set novisualbell
 set t_vb=
 set tm=500
 
-" TAB setting{
-"   set expandtab        "replace <TAB> with spaces
-   set softtabstop=4
-   set shiftwidth=4
-
-"   au FileType Makefile set noexpandtab
-"}
+set smartindent
+set tabstop=4
+set shiftwidth=4
 
 " status line {
 set laststatus=2
@@ -363,3 +355,18 @@ au BufWritePost *.coffee silent CoffeeMake! -b | cwindow | redraw! " recompile c
 
 " --- vim-gitgutter
 let g:gitgutter_enabled = 1
+
+
+" Ctags recursive search
+set tags=./tags;/
+
+set colorcolumn=81
+highlight OverLength ctermbg=red ctermfg=white guibg=#592929
+highlight ExtraWhitespace ctermbg=red guibg=red
+highlight TabAndSpaces ctermbg=blue guibg=blue
+
+:au BufWinEnter * let w:moverlength=matchadd('OverLength', '\%>80v.\+', -1)
+:au BufWinEnter * let w:wtrailspaces=matchadd('ExtraWhitespace', '\s\+$', -1)
+:au BufWinEnter * let w:mtabbeforesp=matchadd('TabAndSpaces', '\v(\t+)\ze( +)', -1)
+:au BufWinEnter * let w:mtabaftersp=matchadd('TabAndSpaces', '\v( +)\zs(\t+)', -1)
+
