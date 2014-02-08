@@ -5,8 +5,7 @@ ZSH=$HOME/.oh-my-zsh
 # Look in ~/.oh-my-zsh/themes/
 # Optionally, if you set this to "random", it'll load a random theme each
 # time that oh-my-zsh is loaded.
-#ZSH_THEME="robbyrussell"
-ZSH_THEME="agnoster"
+ZSH_THEME="robbyrussell"
 DEFAULT_USER="denis"
 
 # Example aliases
@@ -49,8 +48,9 @@ source $ZSH/oh-my-zsh.sh
 alias -r nautilus="nautilus --no-desktop"
 alias -r ack="ack-grep"
 alias df='df -h'
-alias du='du -h --max-depth=1 | sort -h'
-alias ls='ls -lh --color'
+#alias du='du -h --max-depth=1 | sort -h'
+alias du='du -h -d 1 | sort -h'
+#alias ls='ls -lh --color'
 
 export LESS_TERMCAP_mb=$'\E[01;31m'       # begin blinking
 export LESS_TERMCAP_md=$'\E[01;38;5;74m'  # begin bold
@@ -61,6 +61,9 @@ export LESS_TERMCAP_ue=$'\E[0m'           # end underline
 export LESS_TERMCAP_us=$'\E[04;38;5;146m' # begin underline
 
 # Customs PATHs
+export JAVA_TOOL_OPTIONS='-Dfile.encoding=UTF8'
+export SBT_OPTS="-Xms512M -Xmx1536M -Xss1M -XX:+CMSClassUnloadingEnabled -XX:MaxPermSize=256M"
+
 export PATH=/home/denis/moo/llpp:$PATH
 export PATH=/home/denis/git-scripts:$PATH
 export PATH=/home/denis/Sources/shellcheck:$PATH

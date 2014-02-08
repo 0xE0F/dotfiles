@@ -38,7 +38,7 @@ Bundle 'FuzzyFinder'
 " non github repos
 Bundle 'git://git.wincent.com/command-t.git'
 " git repos on your local machine (ie. when working on your own plugin)
-Bundle 'file:///Users/gmarik/path/to/plugin'
+"Bundle 'file:///Users/gmarik/path/to/plugin'
 
 "
 "set list listchars=tab:\|\
@@ -58,12 +58,11 @@ filetype plugin on    " Enable filetype-specific plugins
 " auto reload vimrc when editing it
 autocmd! bufwritepost .vimrc source ~/.vimrc
 
-
 syntax on		" syntax highlight 
 set hlsearch		" search highlighting
 
 if has("gui_running")	" GUI color and font settings
-  set guifont=Osaka-Mono:h26
+  set guifont=Osaka-Mono:h18
   set background=dark 
   set t_Co=256          " 256 color mode
   set cursorline        " highlight current line
