@@ -115,6 +115,3 @@ if ! shopt -oq posix; then
     . /etc/bash_completion
   fi
 fi
-
-PATH="/home/denis/moo/llpp:$PATH"
-cowsay `fortune -a`
