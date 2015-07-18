@@ -62,15 +62,22 @@ fancy-ctrl-z () {
 zle -N fancy-ctrl-z
 bindkey '^Z' fancy-ctrl-z
 
-#TODO: Add division to Linux and MAC OS
+if [[ $(uname) = 'Darwin' ]]; then
+	export CLICOLOR=1
+	export LSCOLORS=gxBxhxDxfxhxhxhxhxcxcx
+	alias df='df -h'
+	alias du='du -h -d 1 | sort -n'
+	alias ls='ls -lhG'
+else
+	alias -r nautilus="nautilus --no-desktop"
+	alias -r ack="ack-grep"
+	alias df='df -h'
+	alias du='du -h --max-depth=1 | sort -h'
+	alias ls='ls -lh --color'
+	alias pbcopy='xsel --clipboard --input'
+	alias pbpaste='xsel --clipboard --output'
+fi
 
-alias -r nautilus="nautilus --no-desktop"
-alias -r ack="ack-grep"
-alias df='df -h'
-alias du='du -h --max-depth=1 | sort -h'
-#alias ls='ls -lh --color'
-alias pbcopy='xsel --clipboard --input'
-alias pbpaste='xsel --clipboard --output'
 
 export LESS_TERMCAP_mb=$'\E[01;31m'       # begin blinking
 export LESS_TERMCAP_md=$'\E[01;38;5;74m'  # begin bold

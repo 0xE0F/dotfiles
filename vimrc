@@ -194,6 +194,13 @@ let g:syntastic_check_on_wq = 0
 let g:syntastic_error_symbol = "✗"
 let g:syntastic_warning_symbol = "⚠"
 
+" air-line
+
+let g:airline_enable_fugitive=1
+let g:airline_enable_bufferline=1
+let g:airline_powerline_fonts = 1
+let g:airline#extensions#tabline#enabled = 1
+
 " Go Specific Stuff
 au BufRead,BufNewFile *.go set filetype=go
 autocmd FileType go setlocal softtabstop=4
