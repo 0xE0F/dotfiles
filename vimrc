@@ -179,6 +179,9 @@ fun! Big5()
 	set fileencoding=big5
 endfun
 
+" Nerd Tree
+map <C-n> :NERDTreeToggle<CR>
+
 "Sintastyc
 
 set statusline+=%#warningmsg#
