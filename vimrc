@@ -29,9 +29,8 @@ set hlsearch
 
 set number
 
-"colorscheme molokai
-"let g:rehash256 = 1
-"let g:molokai_original = 1
+set background=dark
+colorscheme solarized
 
 "" Auto reload vimrc when editing it
 autocmd! bufwritepost .vimrc source ~/.vimrc
