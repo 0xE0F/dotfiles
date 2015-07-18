@@ -68,7 +68,7 @@ alias -r nautilus="nautilus --no-desktop"
 alias -r ack="ack-grep"
 alias df='df -h'
 alias du='du -h --max-depth=1 | sort -h'
-alias ls='ls -lh --color'
+#alias ls='ls -lh --color'
 alias pbcopy='xsel --clipboard --input'
 alias pbpaste='xsel --clipboard --output'
 
@@ -81,7 +81,7 @@ export LESS_TERMCAP_ue=$'\E[0m'           # end underline
 export LESS_TERMCAP_us=$'\E[04;38;5;146m' # begin underline
 
 # Customs PATHs
-export GOPATH=/home/denis/bin
+export GOPATH=~/.golang
 export PATH=/home/denis/git-scripts:$PATH
 export PATH=:$PATH:$GOPATH/bin
 export LC_ALL=en_US.UTF-8
