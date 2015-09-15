@@ -112,6 +112,8 @@ autocmd FileType c,cpp,cc  set cindent comments=sr:/*,mb:*,el:*/,:// cino=>s,e0,
 
 " Ctags recursive search
 set tags=./tags;/
+au BufWritePost *.c,*.cpp,*.h, silent! !ctags -R &
+au BufWritePost *.go silent! !gotags -R -f=tags . &
 
 " Golang specific settings
 let g:go_disable_autoinstall = 0
@@ -132,11 +134,17 @@ highlight TabAndSpaces ctermbg=blue guibg=blue
 "---------------------------------------------------------------------------
 "" Key bindings
 "---------------------------------------------------------------------------
+" Leader key
+let mapleader="\\"
+
 " toogle paste button
 set pastetoggle=<F10>
 " TagbarToggle
 
 nmap <F8> :TagbarToggle<CR>
+
+let g:ctrlp_map = '<c-p>'
+let g:ctrlp_cmd = 'CtrlP'
 
 " allow multiple indentation/deindentation in visual mode
 vnoremap < <gv
@@ -152,6 +160,32 @@ autocmd FileType vim              let b:comment_leader = '" '
 noremap <silent> ,cc :<C-B>silent <C-E>s/^/<C-R>=escape(b:comment_leader,'\/')<CR>/<CR>:nohlsearch<CR>
 noremap <silent> ,cu :<C-B>silent <C-E>s/^\V<C-R>=escape(b:comment_leader,'\/')<CR>//e<CR>:nohlsearch<CR>
 
+au FileType go nmap <leader>s <Plug>(go-run)
+au FileType go nmap <leader>b <Plug>(go-build)
+au FileType go nmap <leader>t <Plug>(go-test)
+au FileType go nmap <leader>cc <Plug>(go-coverage)
+
+au FileType go nmap <Leader>ds <Plug>(go-def-split)
+au FileType go nmap <Leader>dv <Plug>(go-def-vertical)
+au FileType go nmap <Leader>dt <Plug>(go-def-tab)
+
+" Open the relevant Godoc for the word under the cursor with <leader>gd or
+" open it vertically
+au FileType go nmap <Leader>gd <Plug>(go-doc)
+au FileType go nmap <Leader>gv <Plug>(go-doc-vertical)
+
+" Open the Godoc in browser
+au FileType go nmap <Leader>gb <Plug>(go-doc-browser)
+
+" Show a list of interfaces which is implemented by the type under your cursor
+au FileType go nmap <Leader>i <Plug>(go-implements)
+" Show a list of  callers
+au FileType go nmap <Leader>c <Plug>(go-callees)
+" Show a list of references
+au FileType go nmap <Leader>r <Plug>(go-referrers)
+
+" Rename the identifier under the cursor to a new name
+au FileType go nmap <Leader>e <Plug>(go-rename)
 
 "---------------------------------------------------------------------------
 " ENCODING SETTINGS
@@ -194,10 +228,12 @@ let g:syntastic_check_on_wq = 0
 let g:syntastic_error_symbol = "✗"
 let g:syntastic_warning_symbol = "⚠"
 
+"let g:syntastic_mode_map = { 'mode': 'passive', 'active_filetypes': [],'passive_filetypes': [] } nnoremap <C-w>E :SyntasticCheck<CR> :SyntasticToggleMode<CR>
+
 " air-line
 
-let g:airline_enable_fugitive=1
-let g:airline_enable_bufferline=1
+"let g:airline_enable_fugitive=0
+let g:airline#extensions#bufferline#enabled = 1
 let g:airline_powerline_fonts = 1
 let g:airline#extensions#tabline#enabled = 1
 
@@ -216,6 +252,8 @@ let g:go_fmt_command = "goimports"
 let g:go_highlight_functions = 1
 let g:go_highlight_methods = 1
 let g:go_highlight_structs = 1
+let g:go_highlight_operators = 1
+let g:go_highlight_build_constraints = 1
 
 " tagbar settings
 let g:tagbar_type_go = {
@@ -245,3 +283,6 @@ let g:tagbar_type_go = {
     \ 'ctagsbin'  : 'gotags',
     \ 'ctagsargs' : '-sort -silent'
 \ }
+
+"set list
+"set listchars=tab:»-,trail:·

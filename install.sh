@@ -1,8 +1,8 @@
 #!/bin/sh
 ############################
 
-TARGET_DIR=~/dotfiles
-BACKUP_DIR=~/dotfiles_backup
+TARGET_DIR=$(pwd)
+BACKUP_DIR=$(pwd)/dotfiles_backup
 #SOURCES="gitconfig bashrc vimrc zshrc oh-my-zsh"
 SOURCES="gitconfig vimrc zshrc oh-my-zsh gvimrc"
 

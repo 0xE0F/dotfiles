@@ -42,7 +42,7 @@ COMPLETION_WAITING_DOTS="true"
 # Which plugins would you like to load? (plugins can be found in ~/.oh-my-zsh/plugins/*)
 # Custom plugins may be added to ~/.oh-my-zsh/custom/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
-plugins=(git zsh-syntax-highlighting history-substring-search)
+plugins=(git git-flow-completion zsh-syntax-highlighting history-substring-search)
 
 # [[ "$TERM" == "xterm" ]] && export TERM=xterm-256color
 
@@ -88,7 +88,7 @@ export LESS_TERMCAP_ue=$'\E[0m'           # end underline
 export LESS_TERMCAP_us=$'\E[04;38;5;146m' # begin underline
 
 # Customs PATHs
-export GOPATH=~/.golang
+export GOPATH=~/Documents/Developer/argotech/golang
 export PATH=/home/denis/git-scripts:$PATH
 export PATH=:$PATH:$GOPATH/bin
 export LC_ALL=en_US.UTF-8
