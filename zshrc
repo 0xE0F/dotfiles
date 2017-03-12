@@ -5,9 +5,9 @@ ZSH=$HOME/.oh-my-zsh
 # Look in ~/.oh-my-zsh/themes/
 # Optionally, if you set this to "random", it'll load a random theme each
 # time that oh-my-zsh is loaded.
-#ZSH_THEME="robbyrussell"
-ZSH_THEME="agnoster"
-DEFAULT_USER="denis"
+ZSH_THEME="robbyrussell"
+#ZSH_THEME="agnoster"
+DEFAULT_USER="0xe0f"
 
 # Example aliases
 # alias zshconfig="mate ~/.zshrc"
@@ -88,7 +88,6 @@ export LESS_TERMCAP_ue=$'\E[0m'           # end underline
 export LESS_TERMCAP_us=$'\E[04;38;5;146m' # begin underline
 
 # Customs PATHs
-export GOPATH=~/Documents/Developer/argotech/golang
-export PATH=/home/denis/git-scripts:$PATH
+export GOPATH=~/Documents/Argotech/Sources/golang
 export PATH=:$PATH:$GOPATH/bin
 export LC_ALL=en_US.UTF-8

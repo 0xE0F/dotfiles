@@ -3,8 +3,7 @@
 
 TARGET_DIR=$(pwd)
 BACKUP_DIR=$(pwd)/dotfiles_backup
-#SOURCES="gitconfig bashrc vimrc zshrc oh-my-zsh"
-SOURCES="gitconfig vimrc zshrc oh-my-zsh gvimrc"
+SOURCES="gitconfig vimrc zshrc"
 
 echo "Creating backup directory in $BACKUP_DIR"
 mkdir -p $BACKUP_DIR

@@ -2,8 +2,6 @@
 # see /usr/share/doc/bash/examples/startup-files (in the package bash-doc)
 # for examples
 
-# source ~/ARM/FastModelsTools_8.2/etc/setup_all.sh
-
 # If not running interactively, don't do anything
 case $- in
     *i*) ;;
