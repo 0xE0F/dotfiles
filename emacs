@@ -1,10 +1,10 @@
 ;; Package mamagment
-(setq package-list '(evil ibuffer org))
+(setq package-list '(evil ibuffer org recentf dashboard))
 
 ; list the repositories containing them
 (setq package-archives '(("elpa" . "http://tromey.com/elpa/")
 			("gnu" . "http://elpa.gnu.org/packages/")
-			("marmalade" . "http://marmalade-repo.org/packages/")))
+			("melpa" . "http://melpa.org/packages/")))
 
 ; activate all the packages (in particular autoloads)
 (package-initialize)
@@ -24,13 +24,31 @@
 ;; Evil mode
 (require 'evil)
 (evil-mode 1)
+;;(define-key evil-normal-state-map "M-x" 'execute-extended-command)
 
 ;; =======================
 
 ;; ibuffer
 (require 'ibuffer)
 (global-set-key (kbd "C-x C-b") 'ibuffer)
-(autoload 'ibuffer "ibuffer" "List buffers." t)
+;; bind ':ls' command to 'ibuffer instead of 'list-buffers
+(evil-ex-define-cmd "ls" 'ibuffer)
+
+;; =======================
+
+;; Recentf
+
+(require 'recentf)
+(recentf-mode 1)
+(setq recentf-max-menu-items 25)
+(global-set-key "\C-x\ \C-r" 'recentf-open-files)
+
+;; =======================
+
+;; Startup dashboard
+
+(require 'dashboard)
+(dashboard-setup-startup-hook)
 
 ;; =======================
 
@@ -43,6 +61,25 @@
 
 (setq org-todo-keywords
       '((sequence "TODO(t)" "IN-PROGRESS(i)" "WAITING(w@)" "PAUSED(p)" "|" "DONE(d)" "CANCELED(c@)")))
+
+;; Save clock data and state changes and notes in the LOGBOOK drawer
+(setq org-clock-into-drawer t)
+;; Clock out when moving task to a done state
+(setq org-clock-out-when-done t)
+;; use pretty things for the clocktable
+(setq org-pretty-entities t)
+;; Resume clocking task when emacs is restarted
+(org-clock-persistence-insinuate)
+;; Save the running clock and all clock history when exiting Emacs, load it on startup
+(setq org-clock-persist t)
+;; Resume clocking task on clock-in if the clock is open
+(setq org-clock-in-resume t)
+;; Do not prompt to resume an active clock, just resume it
+(setq org-clock-persist-query-resume nil)
+;; Enable auto clock resolution for finding open clocks
+(setq org-clock-auto-clock-resolution (quote when-no-clock-is-running))
+;; Include current clocking task in clock reports
+(setq org-clock-report-include-clocking-task t)
 
 ;; http://sachachua.com/blog/2007/12/clocking-time-with-emacs-org/
 (defun oxeof/org-clock-in-if-starting ()
@@ -60,8 +97,12 @@
   "Clock out when the task is marked WAITING or PAUSED"
   (when (and (or (string= org-state "WAITING")
 		 (string= org-state "PAUSED")
-		 (string= org-state "DONE")
 		 (string= org-state "CANCELED"))
+
+	     (equal (marker-buffer org-clock-marker) (current-buffer))
+	     (< (point) org-clock-marker)
+	     (> (save-excursion (outline-next-heading) (point))
+		org-clock-marker)
 	     (not (string= org-last-state org-state)))
     (org-clock-out)))
 (add-hook 'org-after-todo-state-change-hook
@@ -70,3 +111,15 @@
 (setq org-time-clocksum-format '(:hours "%d" :require-hours t :minutes ":%02d" :require-minutes t))
 
 ;; =======================
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(package-selected-packages (quote (evil))))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
