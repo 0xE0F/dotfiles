@@ -108,7 +108,7 @@
 (add-hook 'org-after-todo-state-change-hook
 	  'oxeof/org-clock-out-if-waiting)
 
-(setq org-time-clocksum-format '(:hours "%d" :require-hours t :minutes ":%02d" :require-minutes t))
+(setq org-time-clocksum-format '(:hours "%dh" :require-hours t :minutes ":%02dm" :require-minutes t))
 
 ;; Replace \emsp to better indents 
 (defun my-org-clocktable-indent-string (level)

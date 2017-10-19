@@ -112,11 +112,11 @@ autocmd FileType c,cpp,cc  set cindent comments=sr:/*,mb:*,el:*/,:// cino=>s,e0,
 
 " Ctags recursive search
 set tags=./tags;/
-au BufWritePost *.c,*.cpp,*.h, silent! !ctags -R * &
+au BufWritePost *.c,*.cpp,*.h,*.hpp, silent! !ctags -R * &
 au BufWritePost *.go silent! !gotags -R -f=tags . &
 
 " Autoformat C/C++ files on save with vim-autoformat
-au BufWrite *.c,*.cpp,*.h :Autoformat
+au BufWrite *.c,*.cpp,*.h,*.hpp :Autoformat
 
 set colorcolumn=81
 highlight OverLength ctermbg=red ctermfg=white guibg=#592929
