@@ -53,20 +53,26 @@
 ;; =======================
 
 ;; Go mode
+;; Install:
+;; go get -u github.com/rogpeppe/godef
+;; go get -u golang.org/x/tools/cmd/goimports
+;; go get -u github.com/nsf/gocode
 ;; Snag the user's PATH and GOPATH
 (exec-path-from-shell-initialize)
 (exec-path-from-shell-copy-env "GOPATH")
 
 ;; Define function to call when go-mode loads
-;; don't forget to install: go get -u golang.org/x/tools/cmd/goimports
 (defun my-go-mode-hook ()
   (auto-complete-mode 1)
   (add-hook 'before-save-hook 'gofmt-before-save) ; gofmt before every save
   (setq gofmt-command "goimports")                ; gofmt uses invokes goimports
+
+;; Godef jump key binding
+  (define-key evil-motion-state-map (kbd "C-]") 'godef-jump)
+  (local-set-key (kbd "C-]") 'godef-jump)
 )
 
 ;; Ensure the go specific autocomplete is active in go-mode.
-;; Don't forget to exec: go get -u github.com/nsf/gocode
 (with-eval-after-load 'go-mode
    (require 'go-autocomplete))
 
