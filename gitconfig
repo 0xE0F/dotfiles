@@ -3,6 +3,7 @@
 	name = 0xe0f
 [core]
 	editor = vim
+	excludesfile = ~/.gitignore_global
 [color]
 	branch = auto
 	diff = auto

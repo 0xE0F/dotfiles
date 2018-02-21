@@ -1,5 +1,5 @@
 ;; Package mamagment
-(setq package-list '(evil ibuffer org recentf dashboard))
+(setq package-list '(evil ibuffer org recentf dashboard go-mode auto-complete go-autocomplete exec-path-from-shell yaml-mode))
 
 ; list the repositories containing them
 (setq package-archives '(("elpa" . "http://tromey.com/elpa/")
@@ -51,6 +51,27 @@
 (dashboard-setup-startup-hook)
 
 ;; =======================
+
+;; Go mode
+;; Snag the user's PATH and GOPATH
+(exec-path-from-shell-initialize)
+(exec-path-from-shell-copy-env "GOPATH")
+
+;; Define function to call when go-mode loads
+;; don't forget to install: go get -u golang.org/x/tools/cmd/goimports
+(defun my-go-mode-hook ()
+  (auto-complete-mode 1)
+  (add-hook 'before-save-hook 'gofmt-before-save) ; gofmt before every save
+  (setq gofmt-command "goimports")                ; gofmt uses invokes goimports
+)
+
+;; Ensure the go specific autocomplete is active in go-mode.
+;; Don't forget to exec: go get -u github.com/nsf/gocode
+(with-eval-after-load 'go-mode
+   (require 'go-autocomplete))
+
+
+(add-hook 'go-mode-hook 'my-go-mode-hook)
 
 ;; Org Mode
 (require 'org)
@@ -122,6 +143,10 @@
 
 (advice-add 'org-clocktable-indent-string :override #'my-org-clocktable-indent-string)
 
+;; YAML mode
+(add-hook 'yaml-mode-hook
+  (lambda ()
+    (define-key yaml-mode-map "\C-m" 'newline-and-indent)))
 
 ;; =======================
 (custom-set-variables
@@ -130,7 +155,7 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(custom-enabled-themes (quote (tango-dark)))
- '(package-selected-packages (quote (evil))))
+ '(package-selected-packages (quote (yaml-mode go-mode evil))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
