@@ -1,3 +1,14 @@
+;; Visual
+
+(tool-bar-mode -1)                  ; Disable the button bar atop screen
+(scroll-bar-mode -1)                ; Disable scroll bar
+(setq inhibit-startup-screen t)     ; Disable startup screen with graphics
+(set-default-font "Source Code Pro 13")      ; Set font and size
+(setq tab-width 4)                  ; Four spaces is a tab
+(setq visible-bell nil)             ; Disable annoying visual bell graphic
+(setq ring-bell-function 'ignore)   ; Disable super annoying audio bell
+
+
 ;; Package mamagment
 (setq package-list '(evil ibuffer org recentf dashboard go-mode auto-complete go-autocomplete exec-path-from-shell yaml-mode))
 
