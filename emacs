@@ -3,7 +3,8 @@
 (tool-bar-mode -1)                  ; Disable the button bar atop screen
 (scroll-bar-mode -1)                ; Disable scroll bar
 (setq inhibit-startup-screen t)     ; Disable startup screen with graphics
-(set-default-font "Source Code Pro 13")      ; Set font and size
+(set-default-font "Source Code Pro 13")
+;; (set-default-font "Input Mono 14")
 (setq tab-width 4)                  ; Four spaces is a tab
 (setq visible-bell nil)             ; Disable annoying visual bell graphic
 (setq ring-bell-function 'ignore)   ; Disable super annoying audio bell
@@ -20,7 +21,7 @@
 ; activate all the packages (in particular autoloads)
 (package-initialize)
 
-; fetch the list of packages available 
+; fetch the list of packages available
 (unless package-archive-contents
     (package-refresh-contents))
 
@@ -174,7 +175,6 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(custom-enabled-themes (quote (tango-dark)))
-(custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
