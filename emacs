@@ -10,7 +10,7 @@
 
 
 ;; Package mamagment
-(setq package-list '(evil ibuffer org recentf dashboard go-mode auto-complete go-autocomplete exec-path-from-shell yaml-mode))
+(setq package-list '(evil ibuffer org recentf dashboard go-mode gorepl-mode auto-complete go-autocomplete exec-path-from-shell yaml-mode ))
 
 ; list the repositories containing them
 (setq package-archives '(("elpa" . "http://tromey.com/elpa/")
@@ -71,12 +71,14 @@
 ;; Snag the user's PATH and GOPATH
 (exec-path-from-shell-initialize)
 (exec-path-from-shell-copy-env "GOPATH")
+(exec-path-from-shell-copy-env "GOROOT")
 
 ;; Define function to call when go-mode loads
 (defun my-go-mode-hook ()
   (auto-complete-mode 1)
   (add-hook 'before-save-hook 'gofmt-before-save) ; gofmt before every save
   (setq gofmt-command "goimports")                ; gofmt uses invokes goimports
+  (add-hook 'go-mode-hook #'gorepl-mode)
 
 ;; Godef jump key binding
   (define-key evil-motion-state-map (kbd "C-]") 'godef-jump)
@@ -172,7 +174,6 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(custom-enabled-themes (quote (tango-dark)))
- '(package-selected-packages (quote (yaml-mode go-mode evil))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
