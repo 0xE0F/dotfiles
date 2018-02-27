@@ -11,11 +11,12 @@
 
 
 ;; Package mamagment
-(setq package-list '(evil ibuffer org recentf dashboard go-mode gorepl-mode auto-complete go-autocomplete exec-path-from-shell yaml-mode ))
+(setq package-list '(evil ibuffer org recentf dashboard go-mode gorepl-mode auto-complete go-autocomplete exec-path-from-shell yaml-mode flycheck))
 
 ; list the repositories containing them
 (setq package-archives '(("elpa" . "http://tromey.com/elpa/")
 			("gnu" . "http://elpa.gnu.org/packages/")
+			("melpa stable" . "http://stable.melpa.org/packages/")
 			("melpa" . "http://melpa.org/packages/")))
 
 ; activate all the packages (in particular autoloads)
@@ -80,6 +81,7 @@
   (add-hook 'before-save-hook 'gofmt-before-save) ; gofmt before every save
   (setq gofmt-command "goimports")                ; gofmt uses invokes goimports
   (add-hook 'go-mode-hook #'gorepl-mode)
+  (global-flycheck-mode)
 
 ;; Godef jump key binding
   (define-key evil-motion-state-map (kbd "C-]") 'godef-jump)
