@@ -3,11 +3,14 @@
 (tool-bar-mode -1)                  ; Disable the button bar atop screen
 (scroll-bar-mode -1)                ; Disable scroll bar
 (setq inhibit-startup-screen t)     ; Disable startup screen with graphics
-(set-default-font "Source Code Pro 13")
-;; (set-default-font "Input Mono 14")
 (setq tab-width 4)                  ; Four spaces is a tab
 (setq visible-bell nil)             ; Disable annoying visual bell graphic
 (setq ring-bell-function 'ignore)   ; Disable super annoying audio bell
+
+(if (eq system-type 'darwin)
+	(set-default-font "Source Code Pro 15")
+	(set-default-font "Source Code Pro 13")
+)
 
 
 ;; Package mamagment
@@ -31,8 +34,12 @@
     (unless (package-installed-p package)
           (package-install package)))
 
+;;
+
+(global-set-key (kbd "s-/") 'comment-line)
 
 ;; Packages specific setup
+
 
 ;; Evil mode
 (require 'evil)
@@ -72,20 +79,23 @@
 ;; go get -u github.com/nsf/gocode
 ;; Snag the user's PATH and GOPATH
 (exec-path-from-shell-initialize)
-(exec-path-from-shell-copy-env "GOPATH")
-(exec-path-from-shell-copy-env "GOROOT")
 
 ;; Define function to call when go-mode loads
 (defun my-go-mode-hook ()
-  (auto-complete-mode 1)
-  (add-hook 'before-save-hook 'gofmt-before-save) ; gofmt before every save
-  (setq gofmt-command "goimports")                ; gofmt uses invokes goimports
-  (add-hook 'go-mode-hook #'gorepl-mode)
-  (global-flycheck-mode)
+    (exec-path-from-shell-copy-env "GOPATH") ;
+    (exec-path-from-shell-copy-env "GOROOT") ; This is important for some tools like godef
+
+    (auto-complete-mode 1)
+
+    (add-hook 'before-save-hook 'gofmt-before-save) ; gofmt before every save
+    (setq gofmt-command "goimports")                ; gofmt uses invokes goimports
+
+    (add-hook 'go-mode-hook #'gorepl-mode)
+    (global-flycheck-mode)
 
 ;; Godef jump key binding
-  (define-key evil-motion-state-map (kbd "C-]") 'godef-jump)
-  (local-set-key (kbd "C-]") 'godef-jump)
+    (define-key evil-motion-state-map (kbd "C-]") 'godef-jump)
+    (local-set-key (kbd "C-]") 'godef-jump)
 )
 
 ;; Ensure the go specific autocomplete is active in go-mode.
@@ -177,8 +187,4 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(custom-enabled-themes (quote (tango-dark)))
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
  )
