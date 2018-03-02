@@ -1,3 +1,4 @@
+;; =======================
 ;; Visual
 
 (tool-bar-mode -1)                  ; Disable the button bar atop screen
@@ -13,14 +14,20 @@
 )
 
 
+;; =======================
 ;; Package mamagment
-(setq package-list '(evil ibuffer org recentf dashboard go-mode gorepl-mode auto-complete go-autocomplete exec-path-from-shell yaml-mode flycheck))
+
+(setq package-list '(evil ibuffer org recentf dashboard go-mode
+					gorepl-mode auto-complete go-autocomplete
+					exec-path-from-shell yaml-mode flycheck)
+)
 
 ; list the repositories containing them
 (setq package-archives '(("elpa" . "http://tromey.com/elpa/")
 			("gnu" . "http://elpa.gnu.org/packages/")
 			("melpa stable" . "http://stable.melpa.org/packages/")
-			("melpa" . "http://melpa.org/packages/")))
+			("melpa" . "http://melpa.org/packages/"))
+)
 
 ; activate all the packages (in particular autoloads)
 (package-initialize)
@@ -38,35 +45,64 @@
 
 (global-set-key (kbd "s-/") 'comment-line)
 
-;; Backup files
+
 ;; =======================
+;; Backup files
+
 (setq
 	backup-by-copying t      ; don't clobber symlinks
-	backup-directory-alist
-	'(("." . "~/.saves"))    ; don't litter my fs tree
+	backup-directory-alist '(("." . "~/.saves"))    ; don't litter my fs tree
 	delete-old-versions t
 	kept-new-versions 6
 	kept-old-versions 2
 	version-control t)       ; use versioned backups
 
+
+;; =======================
 ;; Packages specific setup
+;; =======================
 
 
 ;; Evil mode
 (require 'evil)
 (evil-mode 1)
-;;(define-key evil-normal-state-map "M-x" 'execute-extended-command)
+
+(eval-after-load "evil"
+	'(progn
+		(define-key evil-normal-state-map (kbd "C-w <left>") 'evil-window-left)
+		(define-key evil-normal-state-map (kbd "C-w <down>") 'evil-window-down)
+		(define-key evil-normal-state-map (kbd "C-w <up>") 'evil-window-up)
+		(define-key evil-normal-state-map (kbd "C-w <right>") 'evil-window-right)
+
+		;; Convinient shortcuts for split
+		(define-key evil-normal-state-map (kbd "C--")
+			(lambda ()
+			(interactive)
+			(split-window-vertically)
+			(other-window 1))
+		)
+
+		(define-key evil-normal-state-map (kbd "C-|")
+			(lambda ()
+			(interactive)
+			(split-window-horizontally)
+			(other-window 1)))
+		)
+)
+
+(evil-set-initial-state 'ibuffer-mode 'normal)
 
 ;; =======================
 
 ;; ibuffer
 (require 'ibuffer)
 (global-set-key (kbd "C-x C-b") 'ibuffer)
+
 ;; bind ':ls' command to 'ibuffer instead of 'list-buffers
 (evil-ex-define-cmd "ls" 'ibuffer)
 
-;; =======================
 
+;; =======================
 ;; Recentf
 
 (require 'recentf)
@@ -74,16 +110,17 @@
 (setq recentf-max-menu-items 25)
 (global-set-key "\C-x\ \C-r" 'recentf-open-files)
 
-;; =======================
 
+;; =======================
 ;; Startup dashboard
 
 (require 'dashboard)
 (dashboard-setup-startup-hook)
 
-;; =======================
 
+;; =======================
 ;; Go mode
+
 ;; Install:
 ;; go get -u github.com/rogpeppe/godef
 ;; go get -u golang.org/x/tools/cmd/goimports
@@ -116,7 +153,10 @@
 
 (add-hook 'go-mode-hook 'my-go-mode-hook)
 
+
+;; =======================
 ;; Org Mode
+
 (require 'org)
 (setq org-log-done t)
 
@@ -186,12 +226,14 @@
 
 (advice-add 'org-clocktable-indent-string :override #'my-org-clocktable-indent-string)
 
+
+;; =======================
 ;; YAML mode
 (add-hook 'yaml-mode-hook
   (lambda ()
     (define-key yaml-mode-map "\C-m" 'newline-and-indent)))
 
-;; =======================
+
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
