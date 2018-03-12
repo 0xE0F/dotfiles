@@ -18,8 +18,8 @@
 ;; Package mamagment
 
 (setq package-list '(evil ibuffer org recentf dashboard go-mode
-					gorepl-mode auto-complete go-autocomplete
-					exec-path-from-shell yaml-mode flycheck)
+					gorepl-mode auto-complete go-autocomplete go-rename
+					exec-path-from-shell yaml-mode flycheck neotree)
 )
 
 ; list the repositories containing them
@@ -43,8 +43,6 @@
 
 ;;
 
-(global-set-key (kbd "s-/") 'comment-line)
-
 
 ;; =======================
 ;; Backup files
@@ -62,7 +60,11 @@
 ;; Packages specific setup
 ;; =======================
 
+;; comments
+(global-set-key (kbd "s-/") 'comment-line)
 
+
+;; =======================
 ;; Evil mode
 (require 'evil)
 (evil-mode 1)
@@ -92,9 +94,10 @@
 
 (evil-set-initial-state 'ibuffer-mode 'normal)
 
-;; =======================
 
+;; =======================
 ;; ibuffer
+
 (require 'ibuffer)
 (global-set-key (kbd "C-x C-b") 'ibuffer)
 
@@ -116,6 +119,15 @@
 
 (require 'dashboard)
 (dashboard-setup-startup-hook)
+
+
+;; =======================
+;; Neo tree
+
+(require 'neotree)
+(define-key evil-motion-state-map (kbd "C-n") 'neotree-toggle)
+(define-key evil-normal-state-map (kbd "C-n") 'neotree-toggle)
+(local-set-key (kbd "C-n") 'neotree-toggle)
 
 
 ;; =======================
@@ -141,9 +153,15 @@
     (add-hook 'go-mode-hook #'gorepl-mode)
     (global-flycheck-mode)
 
-;; Godef jump key binding
+    ;; Godef jump key binding
     (define-key evil-motion-state-map (kbd "C-]") 'godef-jump)
     (local-set-key (kbd "C-]") 'godef-jump)
+
+    (define-key evil-motion-state-map (kbd "s-]") 'godef-jump)
+    (local-set-key (kbd "s-]") 'godef-jump)
+
+    (define-key evil-motion-state-map (kbd "s-[") 'pop-tag-mark)
+    (local-set-key (kbd "s-[") 'pop-tag-mark)
 )
 
 ;; Ensure the go specific autocomplete is active in go-mode.
@@ -233,6 +251,7 @@
   (lambda ()
     (define-key yaml-mode-map "\C-m" 'newline-and-indent)))
 
+(add-to-list 'auto-mode-alist '("emacs" . emacs-lisp-mode))
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
