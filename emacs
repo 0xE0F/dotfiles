@@ -13,11 +13,12 @@
 	(set-default-font "Source Code Pro 13")
 )
 
+(set-frame-parameter nil 'fullscreen 'fullboth)
 
 ;; =======================
 ;; Package mamagment
 
-(setq package-list '(evil ibuffer org recentf dashboard go-mode
+(setq package-list '(evil ibuffer org recentf dashboard go-mode zerodark-theme json-reformat
 					gorepl-mode auto-complete go-autocomplete go-rename
 					exec-path-from-shell yaml-mode flycheck neotree)
 )
@@ -232,7 +233,7 @@
 
 (setq org-time-clocksum-format '(:hours "%dh" :require-hours t :minutes ":%02dm" :require-minutes t))
 
-;; Replace \emsp to better indents 
+;; Replace \emsp to better indents
 (defun my-org-clocktable-indent-string (level)
   (if (= level 1)
       ""
@@ -253,10 +254,10 @@
 
 (add-to-list 'auto-mode-alist '("emacs" . emacs-lisp-mode))
 
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(custom-enabled-themes (quote (tango-dark)))
- )
+
+;; =======================
+;; Theme
+(load-theme 'zerodark t)
+
+;; Modeline
+(zerodark-setup-modeline-format)
