@@ -20,7 +20,7 @@
 
 (setq package-list '(evil ibuffer org recentf dashboard go-mode zerodark-theme json-reformat
 					gorepl-mode auto-complete go-autocomplete go-rename
-					exec-path-from-shell yaml-mode flycheck neotree)
+					exec-path-from-shell yaml-mode flycheck neotree helm)
 )
 
 ; list the repositories containing them
@@ -64,6 +64,11 @@
 ;; comments
 (global-set-key (kbd "s-/") 'comment-line)
 
+;; =======================
+;; Helm
+
+(require 'helm-config)
+(require 'helm)
 
 ;; =======================
 ;; Evil mode
@@ -103,7 +108,7 @@
 (global-set-key (kbd "C-x C-b") 'ibuffer)
 
 ;; bind ':ls' command to 'ibuffer instead of 'list-buffers
-(evil-ex-define-cmd "ls" 'ibuffer)
+(evil-ex-define-cmd "ls" 'helm-mini)
 
 
 ;; =======================
