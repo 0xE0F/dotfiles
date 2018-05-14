@@ -20,7 +20,7 @@
 
 (setq package-list '(evil ibuffer org recentf dashboard go-mode zerodark-theme json-reformat
 					gorepl-mode auto-complete go-autocomplete go-rename
-					exec-path-from-shell yaml-mode flycheck neotree helm)
+					exec-path-from-shell yaml-mode flycheck neotree helm go-guru)
 )
 
 ; list the repositories containing them
@@ -100,6 +100,11 @@
 
 (evil-set-initial-state 'ibuffer-mode 'normal)
 
+;; =======================
+;; Projectile
+
+(require 'projectile)
+(projectile-mode 1)
 
 ;; =======================
 ;; ibuffer
@@ -152,6 +157,9 @@
     (exec-path-from-shell-copy-env "GOROOT") ; This is important for some tools like godef
 
     (auto-complete-mode 1)
+
+    (require 'go-guru)
+    (go-guru-hl-identifier-mode)
 
     (add-hook 'before-save-hook 'gofmt-before-save) ; gofmt before every save
     (setq gofmt-command "goimports")                ; gofmt uses invokes goimports
