@@ -1,3 +1,4 @@
+
 ;; =======================
 ;; Visual
 
@@ -13,7 +14,18 @@
 	(set-default-font "Source Code Pro 13")
 )
 
-(set-frame-parameter nil 'fullscreen 'fullboth)
+;; Frame mode switch
+;; https://stackoverflow.com/questions/9248996/how-to-toggle-fullscreen-with-emacs-as-default
+(defun switch-fullscreen nil
+  (interactive)
+  (let* ((modes '(nil fullboth fullwidth fullheight))
+         (cm (cdr (assoc 'fullscreen (frame-parameters) ) ) )
+         (next (cadr (member cm modes) ) ) )
+    (modify-frame-parameters
+     (selected-frame)
+     (list (cons 'fullscreen next)))))
+
+(define-key global-map (kbd "C-=") 'switch-fullscreen)
 
 ;; =======================
 ;; Package mamagment
@@ -267,6 +279,29 @@
 
 (add-to-list 'auto-mode-alist '("emacs" . emacs-lisp-mode))
 
+
+;; =======================
+;; Spell check
+
+;; Do not forget to install ispell (e.g. brew install ispell)
+(dolist (hook '(text-mode-hook
+		org-mode-hook
+		))
+  (add-hook hook (lambda () (flyspell-mode 1))))
+
+(dolist (mode '(emacs-lisp-mode-hook
+                inferior-lisp-mode-hook
+                python-mode-hook
+                go-mode-hook
+                R-mode-hook))
+  (add-hook mode '(lambda ()
+               (flyspell-prog-mode))))
+
+;; Mac OS does not like "mouse2" button
+(eval-after-load "flyspell"
+  '(progn
+     (define-key flyspell-mouse-map [down-mouse-3] #'flyspell-correct-word)
+     (define-key flyspell-mouse-map [mouse-3] #'undefined)))
 
 ;; =======================
 ;; Theme
