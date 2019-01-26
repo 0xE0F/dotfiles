@@ -31,8 +31,10 @@
 ;; Package mamagment
 
 (setq package-list '(evil ibuffer org recentf dashboard go-mode zerodark-theme json-reformat
-					gorepl-mode auto-complete go-autocomplete go-rename
-					exec-path-from-shell yaml-mode flycheck neotree helm go-guru)
+					auto-complete go-autocomplete go-rename magit
+					exec-path-from-shell yaml-mode flycheck neotree helm go-guru
+					lsp-mode company company-lsp cquery use-package markdown-mode
+					projectile go-projectile magit json-mode js2-mode web-mode indium)
 )
 
 ; list the repositories containing them
@@ -82,6 +84,9 @@
 (require 'helm-config)
 (require 'helm)
 
+
+(global-set-key (kbd "C-c f r") 'xref-find-references)
+
 ;; =======================
 ;; Evil mode
 (require 'evil)
@@ -116,7 +121,12 @@
 ;; Projectile
 
 (require 'projectile)
+(setq projectile-completion-system 'helm)
 (projectile-mode 1)
+
+
+(global-set-key (kbd "C-c p p") 'projectile-switch-project)
+(global-set-key (kbd "C-c p f") 'projectile--find-file)
 
 ;; =======================
 ;; ibuffer
@@ -151,6 +161,8 @@
 (define-key evil-motion-state-map (kbd "C-n") 'neotree-toggle)
 (define-key evil-normal-state-map (kbd "C-n") 'neotree-toggle)
 (local-set-key (kbd "C-n") 'neotree-toggle)
+(setq neo-smart-open t)
+;;(setq projectile-switch-project-action 'neotree-projectile-action)
 
 
 ;; =======================
@@ -168,7 +180,15 @@
     (exec-path-from-shell-copy-env "GOPATH") ;
     (exec-path-from-shell-copy-env "GOROOT") ; This is important for some tools like godef
 
+    (require 'go-projectile)
+
     (auto-complete-mode 1)
+
+    (require 'go-autocomplete)
+    ;; (ac-flyspell-workaround)
+    ;; Workaround for spell checker and go-autocomplete
+    (require 'auto-complete-config)
+    (ac-config-default)
 
     (require 'go-guru)
     (go-guru-hl-identifier-mode)
@@ -176,7 +196,6 @@
     (add-hook 'before-save-hook 'gofmt-before-save) ; gofmt before every save
     (setq gofmt-command "goimports")                ; gofmt uses invokes goimports
 
-    (add-hook 'go-mode-hook #'gorepl-mode)
     (global-flycheck-mode)
 
     ;; Godef jump key binding
@@ -192,10 +211,36 @@
 
 ;; Ensure the go specific autocomplete is active in go-mode.
 (with-eval-after-load 'go-mode
-   (require 'go-autocomplete))
+  (require 'go-autocomplete)
+  (ac-flyspell-workaround)
+;; Workaround for spell checker and go-autocomplete
+  (require 'auto-complete-config)
+  ;; (ac-config-default)
+)
 
 
 (add-hook 'go-mode-hook 'my-go-mode-hook)
+
+
+;; =======================
+;; C/C++ Mode
+
+
+(defun cquery//enable ()
+  (condition-case nil
+	  (lsp-cquery-enable)
+	(user-error nil)))
+
+(setq cquery-executable "/Users/denisb/Dev/tools/cquery/build/release/bin/cquery")
+
+(require 'company-lsp)
+(push 'company-lsp company-backends)
+(company-mode 1)
+
+(use-package cquery
+			 :commands lsp-cquery-enable
+			 :init (add-hook 'c-mode-hook #'cquery//enable)
+			 (add-hook 'c++-mode-hook #'cquery//enable))
 
 
 ;; =======================
@@ -303,9 +348,81 @@
      (define-key flyspell-mouse-map [down-mouse-3] #'flyspell-correct-word)
      (define-key flyspell-mouse-map [mouse-3] #'undefined)))
 
+
+;; JS
+
+(add-to-list 'auto-mode-alist '("\\.js\\'" . js2-mode))
+(add-to-list 'auto-mode-alist '("\\.jsx$" . web-mode))
+
+;; adjust indents for web-mode to 2 spaces
+(defun my-web-mode-hook ()
+  "Hooks for Web mode. Adjust indents"
+  ;;; http://web-mode.org/
+  (setq web-mode-markup-indent-offset 2)
+  (setq web-mode-css-indent-offset 2)
+  (setq web-mode-code-indent-offset 2))
+(add-hook 'web-mode-hook  'my-web-mode-hook)
+
+;; for better jsx syntax-highlighting in web-mode
+;; - courtesy of Patrick @halbtuerke
+(defadvice web-mode-highlight-part (around tweak-jsx activate)
+  (if (equal web-mode-content-type "jsx")
+    (let ((web-mode-enable-part-face nil))
+      ad-do-it)
+    ad-do-it))
+
+
+;; Reddit
+(require 'helm)
+
+(setq reddit-list '("emacs" "programming" "golang" "cpp" "space" "cyberpunk" "australia" "sydney"))
+
+(defun reddit-browser ()
+  "Choose a subreddit to browser using helm"
+  (interactive)
+
+  (helm
+   :prompt "Reddit: "
+   :sources  `((
+		(name       . "File: ")
+		(candidates . ,reddit-list)
+		(action     . (lambda (r)
+				(eww (concat "https://www.m.reddit.com/r/"
+					     r
+					     ))))
+		))))
+
 ;; =======================
 ;; Theme
 (load-theme 'zerodark t)
 
+(use-package markdown-mode
+  :ensure t
+  :commands (markdown-mode gfm-mode)
+  :mode (("README\\.md\\'" . gfm-mode)
+         ("\\.md\\'" . markdown-mode)
+         ("\\.markdown\\'" . markdown-mode))
+  :init (setq markdown-command "multimarkdown")
+)
+
+;; =======================
+;; Misc
+(defun insert-current-date () (interactive)
+       (insert (shell-command-to-string "echo -n $(date +'%B %e, %Y')")))
+
 ;; Modeline
 (zerodark-setup-modeline-format)
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(package-selected-packages
+   (quote
+	(indium web-mode go-projectile js2-mode js2 markdown-mode company-mode company-lsp use-package cquery emacs-cquery lsp-mode hackernews zerodark-theme yaml-mode projectile neotree json-reformat helm gorepl-mode go-rename go-guru go-autocomplete exec-path-from-shell evil dashboard autumn-light-theme atom-one-dark-theme))))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
