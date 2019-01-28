@@ -31,10 +31,10 @@
 ;; Package mamagment
 
 (setq package-list '(evil ibuffer org recentf dashboard go-mode zerodark-theme json-reformat
-					auto-complete go-autocomplete go-rename magit
+					auto-complete go-autocomplete go-rename magit prettier-js
 					exec-path-from-shell yaml-mode flycheck neotree helm go-guru
 					lsp-mode company company-lsp cquery use-package markdown-mode
-					projectile go-projectile magit json-mode js2-mode web-mode indium)
+					projectile go-projectile magit json-mode js2-mode)
 )
 
 ; list the repositories containing them
@@ -231,7 +231,7 @@
 	  (lsp-cquery-enable)
 	(user-error nil)))
 
-(setq cquery-executable "/Users/denisb/Dev/tools/cquery/build/release/bin/cquery")
+(setq cquery-executable "/home/denis/Developer/Tools/cquery/build/release/bin/cquery")
 
 (require 'company-lsp)
 (push 'company-lsp company-backends)
@@ -350,27 +350,31 @@
 
 
 ;; JS
-
 (add-to-list 'auto-mode-alist '("\\.js\\'" . js2-mode))
-(add-to-list 'auto-mode-alist '("\\.jsx$" . web-mode))
+(add-hook 'js2-mode-hook (lambda () (flycheck-mode 1)))
+(add-hook 'js2-mode-hook (lambda () (prettier-js-mode 1)))
 
-;; adjust indents for web-mode to 2 spaces
-(defun my-web-mode-hook ()
-  "Hooks for Web mode. Adjust indents"
-  ;;; http://web-mode.org/
-  (setq web-mode-markup-indent-offset 2)
-  (setq web-mode-css-indent-offset 2)
-  (setq web-mode-code-indent-offset 2))
-(add-hook 'web-mode-hook  'my-web-mode-hook)
+(add-hook 'js2-mode-hook
+          (defun my-js2-mode-setup ()
+            (flycheck-mode t)
+            (when (executable-find "eslint")
+              (flycheck-select-checker 'javascript-eslint)
+	      )
+	    )
+)
 
-;; for better jsx syntax-highlighting in web-mode
-;; - courtesy of Patrick @halbtuerke
-(defadvice web-mode-highlight-part (around tweak-jsx activate)
-  (if (equal web-mode-content-type "jsx")
-    (let ((web-mode-enable-part-face nil))
-      ad-do-it)
-    ad-do-it))
+;; Try to highlight most ECMA built-ins
+(setq js2-highlight-level 3)
 
+;; turn off all warnings in js2-mode
+(setq js2-mode-show-parse-errors t)
+(setq js2-mode-show-strict-warnings nil)
+(setq js2-strict-missing-semi-warning nil)
+
+;; https://github.com/prettier/prettier-emacs
+(use-package prettier-js
+  :hook ((js2-mode . prettier-js-mode)
+))
 
 ;; Reddit
 (require 'helm)
@@ -419,7 +423,7 @@
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
    (quote
-	(indium web-mode go-projectile js2-mode js2 markdown-mode company-mode company-lsp use-package cquery emacs-cquery lsp-mode hackernews zerodark-theme yaml-mode projectile neotree json-reformat helm gorepl-mode go-rename go-guru go-autocomplete exec-path-from-shell evil dashboard autumn-light-theme atom-one-dark-theme))))
+    (js-mode helm-mini go-projectile js2-mode js2 markdown-mode company-mode company-lsp use-package cquery emacs-cquery lsp-mode hackernews zerodark-theme yaml-mode projectile neotree json-reformat helm go-rename go-guru go-autocomplete exec-path-from-shell evil dashboard autumn-light-theme atom-one-dark-theme))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
