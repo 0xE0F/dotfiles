@@ -31,11 +31,11 @@
 ;; Package mamagment
 
 (setq package-list '(evil ibuffer org recentf dashboard go-mode all-the-icons zerodark-theme json-reformat
-					auto-complete go-autocomplete go-rename magit prettier-js nov
+					auto-complete go-rename magit prettier-js nov
 					exec-path-from-shell yaml-mode flycheck neotree helm go-guru
 					lsp-mode company company-lsp cquery use-package markdown-mode
 					projectile go-projectile magit json-mode js2-mode org-journal
-					restclient elixir-mode lsp-ui ledger-mode flycheck-ledger)
+					restclient elixir-mode lsp-ui ledger-mode flycheck-ledger yasnippet)
 )
 
 ; list the repositories containing them
@@ -394,9 +394,6 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (add-hook 'lsp-mode-hook 'lsp-ui-mode)
   )
 
-(use-package company-lsp
-  :commands company-lsp)
-
 ;; optional package to get the error squiggles as you edit
 (use-package flycheck
   :ensure t)
@@ -406,7 +403,13 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   :config
     (setq company-idle-delay 0)
     (setq company-minimum-prefix-length 1)
-    (setq company-tooltip-align-annotations t)
+    (setq company-tooltip-align-annotations nil)
+)
+
+(use-package yasnippet
+  :ensure t
+  :commands yas-minor-mode
+  :hook (go-mode . yas-minor-mode)
 )
 
 ;; =======================
@@ -541,15 +544,16 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(ediff-window-setup-function 'ediff-setup-windows-plain)
- '(lsp-ui-flycheck-list-position 'right)
+ '(ediff-window-setup-function (quote ediff-setup-windows-plain))
+ '(lsp-ui-flycheck-list-position (quote right))
  '(lsp-ui-flycheck-live-reporting t)
  '(org-agenda-files nil)
  '(org-journal-date-format "%A, %d %B %Y" t)
  '(org-journal-dir "~/.journal/" t)
  '(org-journal-file-format "%Y-%m-%d.org" t)
  '(package-selected-packages
-   '(selectric-mode lsp-elixir org-journal js-mode helm-mini go-projectile js2-mode js2 markdown-mode company-mode company-lsp use-package cquery emacs-cquery lsp-mode hackernews zerodark-theme yaml-mode projectile neotree json-reformat helm go-rename go-guru go-autocomplete exec-path-from-shell evil dashboard autumn-light-theme atom-one-dark-theme)))
+   (quote
+    (selectric-mode lsp-elixir org-journal js-mode helm-mini go-projectile js2-mode js2 markdown-mode company-mode company-lsp use-package cquery emacs-cquery lsp-mode hackernews zerodark-theme yaml-mode projectile neotree json-reformat helm go-rename go-guru exec-path-from-shell evil dashboard autumn-light-theme atom-one-dark-theme))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
