@@ -30,8 +30,8 @@
 ;; =======================
 ;; Package mamagment
 
-(setq package-list '(evil ibuffer org recentf dashboard go-mode zerodark-theme json-reformat
-					auto-complete go-autocomplete go-rename magit prettier-js
+(setq package-list '(evil ibuffer org recentf dashboard go-mode all-the-icons zerodark-theme json-reformat
+					auto-complete go-autocomplete go-rename magit prettier-js nov
 					exec-path-from-shell yaml-mode flycheck neotree helm go-guru
 					lsp-mode company company-lsp cquery use-package markdown-mode
 					projectile go-projectile magit json-mode js2-mode org-journal
@@ -39,11 +39,12 @@
 )
 
 ; list the repositories containing them
-(setq package-archives '(("elpa" . "http://tromey.com/elpa/")
+(setq package-archives '(
+			("melpa" . "http://melpa.org/packages/")
+			("elpa" . "http://tromey.com/elpa/")
 			("gnu" . "http://elpa.gnu.org/packages/")
 			("melpa stable" . "http://stable.melpa.org/packages/")
-			("melpa" . "http://melpa.org/packages/"))
-)
+))
 
 ; activate all the packages (in particular autoloads)
 (package-initialize)
@@ -221,14 +222,10 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
     (unbind-key "C-c C-j" go-mode-map)
 )
 
-;; Ensure the go specific autocomplete is active in go-mode.
-(with-eval-after-load 'go-mode
-;;  (require 'go-autocomplete)
-;;  (ac-flyspell-workaround)
-;; Workaround for spell checker and go-autocomplete
-;;  (require 'auto-complete-config)
-  ;; (ac-config-default)
-)
+;; Elixir
+;; Create a buffer-local hook to run elixir-format on save, only when we enable elixir-mode.
+(add-hook 'elixir-mode-hook
+		  (lambda () (add-hook 'before-save-hook 'elixir-format nil t)))
 
 
 (add-hook 'go-mode-hook 'my-go-mode-hook)
@@ -494,6 +491,8 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
 ;; =======================
 ;; Theme
+;; Don't forget to run `M-x all-the-icons-install-fonts`
+(use-package all-the-icons)
 (load-theme 'zerodark t)
 
 ;; =======================
@@ -531,6 +530,9 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   )
 
 (use-package flycheck-ledger :after ledger-mode)
+
+(add-to-list 'auto-mode-alist '("\\.epub\\'" . nov-mode))
+
 
 ;; Modeline
 (zerodark-setup-modeline-format)
