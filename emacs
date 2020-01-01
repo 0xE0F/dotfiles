@@ -10,8 +10,8 @@
 (setq ring-bell-function 'ignore)   ; Disable super annoying audio bell
 
 (if (eq system-type 'darwin)
-	(set-default-font "Source Code Pro 15")
-	(set-default-font "Source Code Pro 13")
+	(set-frame-font "Source Code Pro 15")
+	(set-frame-font "Source Code Pro 13")
 )
 
 ;; Frame mode switch
@@ -34,7 +34,8 @@
 					auto-complete go-autocomplete go-rename magit prettier-js
 					exec-path-from-shell yaml-mode flycheck neotree helm go-guru
 					lsp-mode company company-lsp cquery use-package markdown-mode
-					projectile go-projectile magit json-mode js2-mode)
+					projectile go-projectile magit json-mode js2-mode org-journal
+					restclient elixir-mode lsp-ui ledger-mode flycheck-ledger)
 )
 
 ; list the repositories containing them
@@ -63,8 +64,8 @@
 ;; Backup files
 
 (setq
-	backup-by-copying t      ; don't clobber symlinks
 	backup-directory-alist '(("." . "~/.saves"))    ; don't litter my fs tree
+	backup-by-copying t      ; don't clobber symlinks
 	delete-old-versions t
 	kept-new-versions 6
 	kept-old-versions 2
@@ -114,6 +115,24 @@
 			(other-window 1)))
 		)
 )
+
+;;; esc quits
+(defun minibuffer-keyboard-quit ()
+  "Abort recursive edit.
+In Delete Selection mode, if the mark is active, just deactivate it;
+then it takes a second \\[keyboard-quit] to abort the minibuffer."
+  (interactive)
+  (if (and delete-selection-mode transient-mark-mode mark-active)
+      (setq deactivate-mark  t)
+    (when (get-buffer "*Completions*") (delete-windows-on "*Completions*"))
+    (abort-recursive-edit)))
+(define-key evil-normal-state-map [escape] 'keyboard-quit)
+(define-key evil-visual-state-map [escape] 'keyboard-quit)
+(define-key minibuffer-local-map [escape] 'minibuffer-keyboard-quit)
+(define-key minibuffer-local-ns-map [escape] 'minibuffer-keyboard-quit)
+(define-key minibuffer-local-completion-map [escape] 'minibuffer-keyboard-quit)
+(define-key minibuffer-local-must-match-map [escape] 'minibuffer-keyboard-quit)
+(define-key minibuffer-local-isearch-map [escape] 'minibuffer-keyboard-quit)
 
 (evil-set-initial-state 'ibuffer-mode 'normal)
 
@@ -169,9 +188,9 @@
 ;; Go mode
 
 ;; Install:
+;; go get golang.org/x/tools/gopls@latest
 ;; go get -u github.com/rogpeppe/godef
 ;; go get -u golang.org/x/tools/cmd/goimports
-;; go get -u github.com/nsf/gocode
 ;; Snag the user's PATH and GOPATH
 (exec-path-from-shell-initialize)
 
@@ -182,21 +201,11 @@
 
     (require 'go-projectile)
 
-    (auto-complete-mode 1)
-
-    (require 'go-autocomplete)
-    ;; (ac-flyspell-workaround)
-    ;; Workaround for spell checker and go-autocomplete
-    (require 'auto-complete-config)
-    (ac-config-default)
-
     (require 'go-guru)
     (go-guru-hl-identifier-mode)
 
     (add-hook 'before-save-hook 'gofmt-before-save) ; gofmt before every save
     (setq gofmt-command "goimports")                ; gofmt uses invokes goimports
-
-    (global-flycheck-mode)
 
     ;; Godef jump key binding
     (define-key evil-motion-state-map (kbd "C-]") 'godef-jump)
@@ -207,14 +216,17 @@
 
     (define-key evil-motion-state-map (kbd "s-[") 'pop-tag-mark)
     (local-set-key (kbd "s-[") 'pop-tag-mark)
+
+    ;; This one is for org-journal
+    (unbind-key "C-c C-j" go-mode-map)
 )
 
 ;; Ensure the go specific autocomplete is active in go-mode.
 (with-eval-after-load 'go-mode
-  (require 'go-autocomplete)
-  (ac-flyspell-workaround)
+;;  (require 'go-autocomplete)
+;;  (ac-flyspell-workaround)
 ;; Workaround for spell checker and go-autocomplete
-  (require 'auto-complete-config)
+;;  (require 'auto-complete-config)
   ;; (ac-config-default)
 )
 
@@ -233,9 +245,9 @@
 
 (setq cquery-executable "/home/denis/Developer/Tools/cquery/build/release/bin/cquery")
 
-(require 'company-lsp)
-(push 'company-lsp company-backends)
-(company-mode 1)
+;;(require 'company-lsp)
+;;(push 'company-lsp company-backends)
+;;(company-mode 1)
 
 (use-package cquery
 			 :commands lsp-cquery-enable
@@ -315,6 +327,90 @@
 
 (advice-add 'org-clocktable-indent-string :override #'my-org-clocktable-indent-string)
 
+;; =======================
+;; Org-Journal mode
+(use-package org-journal
+  :ensure t
+  :defer t
+  :custom
+    (org-journal-dir "~/.journal/")
+    (org-journal-date-format "%A, %d %B %Y")
+	(org-journal-file-format "%Y-%m-%d.org")
+	:bind (
+	       ("C-c C-j" . org-journal-new-entry)
+	       ("C-c C-s" . org-journal-search)
+    )
+)
+;;(setq org-journal-dir "~/.journal/")
+;;(setq org-journal-file-format "%Y-%m-%d.org")
+;;(setq org-journal-date-format "%A %d-%m-%Y")
+
+;; Flycheck
+;;
+(use-package flycheck
+  :ensure t
+  :config
+  (global-flycheck-mode)
+)
+
+;; =======================
+;; Rest Client
+(use-package restclient
+  :ensure t
+)
+
+;; Elixir
+
+(use-package elixir-mode
+  :ensure t
+)
+
+;; LSP Mode
+;;
+
+(use-package lsp-mode
+  :ensure t
+  :init
+  (add-hook 'go-mode-hook #'lsp-deferred)
+  :commands (lsp lsp-deferred)
+  :config
+;; use flycheck, not flymake
+  (setq lsp-prefer-flymake nil)
+  (setq lsp-enable-snippet nil)
+)
+
+;; LSP UI
+;;
+(use-package lsp-ui
+  :requires lsp-mode flycheck
+  ;;  :commands lsp-ui-mode
+  :config
+  (setq lsp-ui-doc-enable t)
+  (setq lsp-ui-doc-use-childframe t)
+  (setq lsp-ui-doc-position 'top)
+  (setq lsp-ui-doc-include-signature t)
+  (setq lsp-ui-sideline-enable nil)
+  (setq lsp-ui-flycheck-enable t)
+  (setq lsp-ui-flycheck-list-position 'right)
+  (setq lsp-ui-flycheck-live-reporting t )
+  (setq lsp-ui-peek-enable t)
+  (add-hook 'lsp-mode-hook 'lsp-ui-mode)
+  )
+
+(use-package company-lsp
+  :commands company-lsp)
+
+;; optional package to get the error squiggles as you edit
+(use-package flycheck
+  :ensure t)
+
+(use-package company
+  :ensure t
+  :config
+    (setq company-idle-delay 0)
+    (setq company-minimum-prefix-length 1)
+    (setq company-tooltip-align-annotations t)
+)
 
 ;; =======================
 ;; YAML mode
@@ -400,6 +496,8 @@
 ;; Theme
 (load-theme 'zerodark t)
 
+;; =======================
+;; Markdown
 (use-package markdown-mode
   :ensure t
   :commands (markdown-mode gfm-mode)
@@ -409,10 +507,30 @@
   :init (setq markdown-command "multimarkdown")
 )
 
+
 ;; =======================
-;; Misc
-(defun insert-current-date () (interactive)
-       (insert (shell-command-to-string "echo -n $(date +'%B %e, %Y')")))
+;; Budget
+(use-package ledger-mode
+  :mode ("\\.dat\\'"
+	 "\\.ledger\\'")
+  :hook (ledger-mode . ledger-flymake-enable)
+  :custom (ledger-clear-whole-transactions t)
+  (ledger-reconcile-default-commodity "AUD")
+  (ledger-reports
+   '(("account statement" "%(binary) reg --real [[ledger-mode-flags]] -f %(ledger-file) ^%(account)")
+     ("balance" "%(binary) --real [[ledger-mode-flags]] -f %(ledger-file) bal ^assets ^liabilities")
+     ("balance sheet" "%(binary) --real [[ledger-mode-flags]] -f %(ledger-file) bal ^assets ^liabilities ^equity")
+     ("budget" "%(binary) --empty -S -T [[ledger-mode-flags]] -f %(ledger-file) bal ^assets:bank ^assets:receivables ^assets:cash ^assets:budget")
+     ("budget goals" "%(binary) --empty -S -T [[ledger-mode-flags]] -f %(ledger-file) bal ^assets:bank ^assets:receivables ^assets:cash ^assets:'goals'")
+     ("budget obligations" "%(binary) --empty -S -T [[ledger-mode-flags]] -f %(ledger-file) bal ^assets:bank ^assets:receivables ^assets:cash ^assets:'budget obligations'")
+     ("budget debts" "%(binary) --empty -S -T [[ledger-mode-flags]] -f %(ledger-file) bal ^assets:bank ^assets:receivables ^assets:cash ^assets:'debts'")
+     ("cleared" "%(binary) cleared [[ledger-mode-flags]] -f %(ledger-file)")
+     ("equity" "%(binary) --real [[ledger-mode-flags]] -f %(ledger-file) equity")
+     ("income statement" "%(binary) --invert --real -S -T [[ledger-mode-flags]] -f %(ledger-file) bal ^income ^expenses -p \"this month\""))
+   (ledger-report-use-header-line nil))
+  )
+
+(use-package flycheck-ledger :after ledger-mode)
 
 ;; Modeline
 (zerodark-setup-modeline-format)
@@ -421,9 +539,15 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(ediff-window-setup-function 'ediff-setup-windows-plain)
+ '(lsp-ui-flycheck-list-position 'right)
+ '(lsp-ui-flycheck-live-reporting t)
+ '(org-agenda-files nil)
+ '(org-journal-date-format "%A, %d %B %Y" t)
+ '(org-journal-dir "~/.journal/" t)
+ '(org-journal-file-format "%Y-%m-%d.org" t)
  '(package-selected-packages
-   (quote
-    (js-mode helm-mini go-projectile js2-mode js2 markdown-mode company-mode company-lsp use-package cquery emacs-cquery lsp-mode hackernews zerodark-theme yaml-mode projectile neotree json-reformat helm go-rename go-guru go-autocomplete exec-path-from-shell evil dashboard autumn-light-theme atom-one-dark-theme))))
+   '(selectric-mode lsp-elixir org-journal js-mode helm-mini go-projectile js2-mode js2 markdown-mode company-mode company-lsp use-package cquery emacs-cquery lsp-mode hackernews zerodark-theme yaml-mode projectile neotree json-reformat helm go-rename go-guru go-autocomplete exec-path-from-shell evil dashboard autumn-light-theme atom-one-dark-theme)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
