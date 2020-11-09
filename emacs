@@ -1,4 +1,5 @@
 
+
 ;; =======================
 ;; Visual
 
@@ -10,8 +11,8 @@
 (setq ring-bell-function 'ignore)   ; Disable super annoying audio bell
 
 (if (eq system-type 'darwin)
-	(set-frame-font "Source Code Pro 15")
-	(set-frame-font "Source Code Pro 13")
+	(set-frame-font "Iosevka Clam 15")
+	(set-frame-font "Iosevka Clam 13")
 )
 
 ;; Frame mode switch
@@ -35,7 +36,7 @@
 					exec-path-from-shell yaml-mode flycheck neotree helm go-guru
 					lsp-mode company company-lsp cquery use-package markdown-mode
 					projectile go-projectile magit json-mode js2-mode org-journal
-					restclient elixir-mode lsp-ui ledger-mode flycheck-ledger)
+					restclient elixir-mode lsp-ui ledger-mode flycheck-ledger graphviz-dot-mode)
 )
 
 ; list the repositories containing them
@@ -116,6 +117,10 @@
 		)
 )
 
+;; EPA
+;; (setq epg-gpg-program "gpg2")
+(setq epa-pinentry-mode 'loopback)
+
 ;;; esc quits
 (defun minibuffer-keyboard-quit ()
   "Abort recursive edit.
@@ -146,6 +151,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
 (global-set-key (kbd "C-c p p") 'projectile-switch-project)
 (global-set-key (kbd "C-c p f") 'projectile--find-file)
+(global-set-key (kbd "C-c p s") 'projectile-grep)
 
 ;; =======================
 ;; ibuffer
@@ -257,12 +263,11 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
 ;; =======================
 ;; Org Mode
+;; C-c / for search
 
 (require 'org)
 (setq org-log-done t)
-
-(setq org-directory "~/Dropbox/Org/")
-(setq org-agenda-files (list org-directory))
+(setq org-agenda-files (directory-files-recursively "~/Org" "\\.org$"))
 
 (setq org-todo-keywords
       '((sequence "TODO(t)" "IN-PROGRESS(i)" "WAITING(w@)" "PAUSED(p)" "|" "DONE(d)" "CANCELED(c@)")))
@@ -333,7 +338,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   :ensure t
   :defer t
   :custom
-    (org-journal-dir "~/.journal/")
+    (org-journal-dir "~/Org/journal/")
     (org-journal-date-format "%A, %d %B %Y")
 	(org-journal-file-format "%Y-%m-%d.org")
 	:bind (
@@ -341,9 +346,6 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 	       ("C-c C-s" . org-journal-search)
     )
 )
-;;(setq org-journal-dir "~/.journal/")
-;;(setq org-journal-file-format "%Y-%m-%d.org")
-;;(setq org-journal-date-format "%A %d-%m-%Y")
 
 ;; Flycheck
 ;;
@@ -385,14 +387,14 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   :requires lsp-mode flycheck
   ;;  :commands lsp-ui-mode
   :config
-  (setq lsp-ui-doc-enable t)
-  (setq lsp-ui-doc-use-childframe t)
-  (setq lsp-ui-doc-position 'top)
+  (setq lsp-ui-doc-enable nil)
+  (setq lsp-ui-doc-use-childframe nil)
+  (setq lsp-ui-doc-position nil)
   (setq lsp-ui-doc-include-signature t)
   (setq lsp-ui-sideline-enable nil)
   (setq lsp-ui-flycheck-enable t)
   (setq lsp-ui-flycheck-list-position 'right)
-  (setq lsp-ui-flycheck-live-reporting t )
+  (setq lsp-ui-flycheck-live-reporting t)
   (setq lsp-ui-peek-enable t)
   (add-hook 'lsp-mode-hook 'lsp-ui-mode)
   )
@@ -472,6 +474,13 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   :hook ((js2-mode . prettier-js-mode)
 ))
 
+
+(use-package graphviz-dot-mode
+  :ensure t
+  :config
+  (setq graphviz-dot-indent-width 4)
+)
+
 ;; Reddit
 (require 'helm)
 
@@ -542,10 +551,11 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
  '(ediff-window-setup-function 'ediff-setup-windows-plain)
  '(lsp-ui-flycheck-list-position 'right)
  '(lsp-ui-flycheck-live-reporting t)
- '(org-agenda-files nil)
- '(org-journal-date-format "%A, %d %B %Y" t)
- '(org-journal-dir "~/.journal/" t)
- '(org-journal-file-format "%Y-%m-%d.org" t)
+ '(org-agenda-files
+   '("~/Org/journal/2020-10-09.org" "~/Org/journal/2019-09-16.org" "~/Org/journal/2019-09-17.org" "~/Org/journal/2019-09-24.org" "~/Org/journal/2019-12-23.org" "~/Org/journal/2020-01-06.org" "~/Org/journal/2020-01-08.org" "~/Org/journal/2020-01-20.org" "~/Org/journal/2020-01-28.org" "~/Org/journal/2020-02-06.org" "~/Org/journal/2020-02-07.org" "~/Org/journal/2020-02-10.org" "~/Org/journal/2020-02-11.org" "~/Org/journal/2020-02-12.org" "~/Org/journal/2020-02-13.org" "~/Org/journal/2020-02-14.org" "~/Org/journal/2020-02-17.org" "~/Org/journal/2020-02-18.org" "~/Org/journal/2020-02-19.org" "~/Org/journal/2020-02-20.org" "~/Org/journal/2020-02-21.org" "~/Org/journal/2020-02-24.org" "~/Org/journal/2020-02-25.org" "~/Org/journal/2020-02-26.org" "~/Org/journal/2020-02-27.org" "~/Org/journal/2020-02-28.org" "~/Org/journal/2020-03-02.org" "~/Org/journal/2020-03-03.org" "~/Org/journal/2020-03-04.org" "~/Org/journal/2020-03-05.org" "~/Org/journal/2020-03-10.org" "~/Org/journal/2020-03-11.org" "~/Org/journal/2020-03-12.org" "~/Org/journal/2020-03-13.org" "~/Org/journal/2020-03-16.org" "~/Org/journal/2020-03-17.org" "~/Org/journal/2020-03-18.org" "~/Org/journal/2020-03-19.org" "~/Org/journal/2020-03-20.org" "~/Org/journal/2020-03-23.org" "~/Org/journal/2020-03-24.org" "~/Org/journal/2020-03-25.org" "~/Org/journal/2020-03-26.org" "~/Org/journal/2020-03-27.org" "~/Org/journal/2020-03-29.org" "~/Org/journal/2020-03-30.org" "~/Org/journal/2020-03-31.org" "~/Org/journal/2020-04-01.org"))
+ '(org-journal-date-format "%A, %d %B %Y")
+ '(org-journal-dir "~/Org/journal/")
+ '(org-journal-file-format "%Y-%m-%d.org")
  '(package-selected-packages
    '(selectric-mode lsp-elixir org-journal js-mode helm-mini go-projectile js2-mode js2 markdown-mode company-mode company-lsp use-package cquery emacs-cquery lsp-mode hackernews zerodark-theme yaml-mode projectile neotree json-reformat helm go-rename go-guru go-autocomplete exec-path-from-shell evil dashboard autumn-light-theme atom-one-dark-theme)))
 (custom-set-faces
