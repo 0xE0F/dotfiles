@@ -84,6 +84,10 @@ source $ZSH/oh-my-zsh.sh
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 export GOPATH="/home/denis/Developer/golang"
-export PATH=$PATH:/usr/local/go/bin:$GOPATH/bin:~/.local/bin
+export PATH="/usr/local/go-1.13.4/bin":$GOPATH/bin:~/.local/bin:/usr/local/elixir:$PATH
+export IDF_PATH=/home/denis/Developer/embedded/esp8266/tools/ESP8266_RTOS_SDK-3.1
+export PATH=$PATH:/home/denis/Developer/embedded/esp8266/tools/xtensa-lx106-elf/bin
+export PATH=$PATH:/usr/local/bin
+export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
