@@ -32,11 +32,11 @@
 ;; Package mamagment
 
 (setq package-list '(evil ibuffer org recentf dashboard go-mode all-the-icons zerodark-theme json-reformat
-					auto-complete go-rename magit prettier-js nov
+					auto-complete go-rename magit prettier-js
 					exec-path-from-shell yaml-mode flycheck neotree helm
 					lsp-mode company company-lsp cquery use-package markdown-mode
 					projectile go-projectile magit json-mode js2-mode
-					restclient elixir-mode lsp-ui graphviz-dot-mode yasnippet)
+					restclient elixir-mode lsp-ui flycheck-ledger graphviz-dot-mode)
 )
 
 ; list the repositories containing them
@@ -196,7 +196,6 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
 ;; Install:
 ;; go get golang.org/x/tools/gopls@latest
-;; go get -u github.com/rogpeppe/godef
 ;; go get -u golang.org/x/tools/cmd/goimports
 ;; Snag the user's PATH and GOPATH
 (exec-path-from-shell-initialize)
@@ -204,27 +203,27 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 ;; Define function to call when go-mode loads
 (defun my-go-mode-hook ()
     (exec-path-from-shell-copy-env "GOPATH") ;
-    (exec-path-from-shell-copy-env "GOROOT") ; This is important for some tools like godef
+    (exec-path-from-shell-copy-env "GOROOT") ; This is important for some tools gopls
 
     (require 'go-projectile)
 
-    (require 'go-guru)
+    (require 'lsp-ui)
     (go-guru-hl-identifier-mode)
 
     (add-hook 'before-save-hook 'gofmt-before-save) ; gofmt before every save
     (setq gofmt-command "goimports")                ; gofmt uses invokes goimports
 
-    ;; Godef jump key binding
-    (define-key evil-motion-state-map (kbd "C-]") 'godef-jump)
-    (local-set-key (kbd "C-]") 'godef-jump)
+    ;; lsp-ui jump key binding
+    (define-key evil-motion-state-map (kbd "C-]") 'lsp-ui-peek-find-definitions)
+    (local-set-key (kbd "C-]") 'lsp-ui-peek-find-definitions)
 
-    (define-key evil-motion-state-map (kbd "s-]") 'godef-jump)
-    (local-set-key (kbd "s-]") 'godef-jump)
+    (define-key evil-motion-state-map (kbd "s-]") 'lsp-ui-peek-find-definitions)
+    (local-set-key (kbd "s-]") 'lsp-ui-peek-find-definitions)
 
-    (define-key evil-motion-state-map (kbd "s-[") 'pop-tag-mark)
-    (local-set-key (kbd "s-[") 'pop-tag-mark)
+    (define-key evil-motion-state-map (kbd "s-[") 'lsp-ui-peek-jump-backward)
+    (local-set-key (kbd "s-[") 'lsp-ui-peek-jump-backward)
 
-    ;; This one is for org-journal
+    ;; This one is for org-capture
     (unbind-key "C-c C-j" go-mode-map)
 )
 
@@ -264,7 +263,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
 (require 'org)
 (setq org-log-done t)
-(setq org-agenda-files (directory-files-recursively "~/Org" "\\.org$"))
+(setq org-directory "~/Org/")
 
 (setq org-todo-keywords
       '((sequence "TODO(t)" "IN-PROGRESS(i)" "WAITING(w@)" "PAUSED(p)" "|" "DONE(d)" "CANCELED(c@)")))
@@ -329,21 +328,17 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
 (advice-add 'org-clocktable-indent-string :override #'my-org-clocktable-indent-string)
 
-;; =======================
-;; Org-Journal mode
-(use-package org-journal
-  :ensure t
-  :defer t
-  :custom
-    (org-journal-dir "~/Org/journal/")
-    (org-journal-date-format "%A, %d %B %Y")
-	(org-journal-file-format "%Y-%m-%d.org")
-	:bind (
-	       ("C-c C-j" . org-journal-new-entry)
-	       ("C-c C-s" . org-journal-search)
-    )
-)
+(global-set-key (kbd "C-c C-j") 'org-capture)
+(setq org-default-notes-file (concat org-directory "notes.org"))
 
+(setq org-capture-templates
+      `(("t" "Todo" entry (file+headline ,(concat org-directory "tasks.org") "Tasks")
+         "* TODO %?\n  %U\n  %i\n  %a")
+        ("j" "Journal" entry (file+olp+datetree ,(concat org-directory "notes.org"))
+         "* %?\nEntered on %U\n  %i\n  %a")))
+
+;;(setq org-agenda-files (directory-files-recursively org-directory "\\.org$"))
+(setq org-agenda-files '("~/Org/tasks.org"))
 ;; Flycheck
 ;;
 (use-package flycheck
@@ -519,32 +514,6 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 )
 
 
-;; =======================
-;; Budget
-(use-package ledger-mode
-  :mode ("\\.dat\\'"
-	 "\\.ledger\\'")
-  :hook (ledger-mode . ledger-flymake-enable)
-  :custom (ledger-clear-whole-transactions t)
-  (ledger-reconcile-default-commodity "AUD")
-  (ledger-reports
-   '(("account statement" "%(binary) reg --real [[ledger-mode-flags]] -f %(ledger-file) ^%(account)")
-     ("balance" "%(binary) --real [[ledger-mode-flags]] -f %(ledger-file) bal ^assets ^liabilities")
-     ("balance sheet" "%(binary) --real [[ledger-mode-flags]] -f %(ledger-file) bal ^assets ^liabilities ^equity")
-     ("budget" "%(binary) --empty -S -T [[ledger-mode-flags]] -f %(ledger-file) bal ^assets:bank ^assets:receivables ^assets:cash ^assets:budget")
-     ("budget goals" "%(binary) --empty -S -T [[ledger-mode-flags]] -f %(ledger-file) bal ^assets:bank ^assets:receivables ^assets:cash ^assets:'goals'")
-     ("budget obligations" "%(binary) --empty -S -T [[ledger-mode-flags]] -f %(ledger-file) bal ^assets:bank ^assets:receivables ^assets:cash ^assets:'budget obligations'")
-     ("budget debts" "%(binary) --empty -S -T [[ledger-mode-flags]] -f %(ledger-file) bal ^assets:bank ^assets:receivables ^assets:cash ^assets:'debts'")
-     ("cleared" "%(binary) cleared [[ledger-mode-flags]] -f %(ledger-file)")
-     ("equity" "%(binary) --real [[ledger-mode-flags]] -f %(ledger-file) equity")
-     ("income statement" "%(binary) --invert --real -S -T [[ledger-mode-flags]] -f %(ledger-file) bal ^income ^expenses -p \"this month\""))
-   (ledger-report-use-header-line nil))
-  )
-
-(use-package flycheck-ledger :after ledger-mode)
-
-(add-to-list 'auto-mode-alist '("\\.epub\\'" . nov-mode))
-
 
 ;; Modeline
 (zerodark-setup-modeline-format)
@@ -556,15 +525,6 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
  '(ediff-window-setup-function (quote ediff-setup-windows-plain))
  '(lsp-ui-flycheck-list-position (quote right))
  '(lsp-ui-flycheck-live-reporting t)
- '(org-agenda-files
-   '("~/Org/journal/2020-10-09.org" "~/Org/journal/2019-09-16.org" "~/Org/journal/2019-09-17.org" "~/Org/journal/2019-09-24.org" "~/Org/journal/2019-12-23.org" "~/Org/journal/2020-01-06.org" "~/Org/journal/2020-01-08.org" "~/Org/journal/2020-01-20.org" "~/Org/journal/2020-01-28.org" "~/Org/journal/2020-02-06.org" "~/Org/journal/2020-02-07.org" "~/Org/journal/2020-02-10.org" "~/Org/journal/2020-02-11.org" "~/Org/journal/2020-02-12.org" "~/Org/journal/2020-02-13.org" "~/Org/journal/2020-02-14.org" "~/Org/journal/2020-02-17.org" "~/Org/journal/2020-02-18.org" "~/Org/journal/2020-02-19.org" "~/Org/journal/2020-02-20.org" "~/Org/journal/2020-02-21.org" "~/Org/journal/2020-02-24.org" "~/Org/journal/2020-02-25.org" "~/Org/journal/2020-02-26.org" "~/Org/journal/2020-02-27.org" "~/Org/journal/2020-02-28.org" "~/Org/journal/2020-03-02.org" "~/Org/journal/2020-03-03.org" "~/Org/journal/2020-03-04.org" "~/Org/journal/2020-03-05.org" "~/Org/journal/2020-03-10.org" "~/Org/journal/2020-03-11.org" "~/Org/journal/2020-03-12.org" "~/Org/journal/2020-03-13.org" "~/Org/journal/2020-03-16.org" "~/Org/journal/2020-03-17.org" "~/Org/journal/2020-03-18.org" "~/Org/journal/2020-03-19.org" "~/Org/journal/2020-03-20.org" "~/Org/journal/2020-03-23.org" "~/Org/journal/2020-03-24.org" "~/Org/journal/2020-03-25.org" "~/Org/journal/2020-03-26.org" "~/Org/journal/2020-03-27.org" "~/Org/journal/2020-03-29.org" "~/Org/journal/2020-03-30.org" "~/Org/journal/2020-03-31.org" "~/Org/journal/2020-04-01.org"))
- '(org-journal-date-format "%A, %d %B %Y")
- '(org-journal-dir "~/Org/journal/")
- '(org-journal-file-format "%Y-%m-%d.org")
- '(package-selected-packages
-   (quote
-    (selectric-mode lsp-elixir org-journal js-mode helm-mini go-projectile js2-mode js2 markdown-mode company-mode company-lsp use-package cquery emacs-cquery lsp-mode hackernews zerodark-theme yaml-mode projectile neotree json-reformat helm go-rename go-guru exec-path-from-shell evil dashboard autumn-light-theme atom-one-dark-theme))))
-(custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
