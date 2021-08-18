@@ -11,8 +11,8 @@
 (setq ring-bell-function 'ignore)   ; Disable super annoying audio bell
 
 (if (eq system-type 'darwin)
-	(set-frame-font "Iosevka Clam 15")
-	(set-frame-font "Iosevka Clam 13")
+;;	(set-frame-font "Iosevka Clam 15")
+	(set-frame-font "Iosevka Light 13")
 )
 
 ;; Frame mode switch
@@ -36,8 +36,9 @@
 					exec-path-from-shell yaml-mode flycheck neotree helm
 					lsp-mode company company-lsp cquery use-package markdown-mode
 					projectile go-projectile magit json-mode js2-mode
-					restclient elixir-mode lsp-ui flycheck-ledger graphviz-dot-mode)
+					restclient elixir-mode lsp-ui flycheck-ledger graphviz-dot-mode clang-format)
 )
+
 
 ; list the repositories containing them
 (setq package-archives '(
@@ -236,27 +237,18 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
 (add-hook 'go-mode-hook 'my-go-mode-hook)
 
-
 ;; =======================
 ;; C/C++ Mode
 
+(use-package ccls
+  :hook ((c-mode c++-mode objc-mode cuda-mode) .
+         (lambda () (require 'ccls) (lsp))))
 
-(defun cquery//enable ()
-  (condition-case nil
-	  (lsp-cquery-enable)
-	(user-error nil)))
 
-(setq cquery-executable "/home/denis/Developer/Tools/cquery/build/release/bin/cquery")
-
-;;(require 'company-lsp)
-;;(push 'company-lsp company-backends)
-;;(company-mode 1)
-
-(use-package cquery
-			 :commands lsp-cquery-enable
-			 :init (add-hook 'c-mode-hook #'cquery//enable)
-			 (add-hook 'c++-mode-hook #'cquery//enable))
-
+(use-package clang-format
+  :hook ((c-mode) .
+	 (lambda () (add-hook 'before-save-hook
+			'clang-format-buffer))))
 
 ;; =======================
 ;; Org Mode
@@ -264,7 +256,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
 (require 'org)
 (setq org-log-done t)
-(setq org-directory "~/Org/")
+(setq org-directory "~/Dropbox/Org/")
 
 (setq org-todo-keywords
       '((sequence "TODO(t)" "IN-PROGRESS(i)" "WAITING(w@)" "PAUSED(p)" "|" "DONE(d)" "CANCELED(c@)")))
@@ -330,7 +322,6 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 (advice-add 'org-clocktable-indent-string :override #'my-org-clocktable-indent-string)
 
 (global-set-key (kbd "C-c C-j") 'org-capture)
-(setq org-default-notes-file (concat org-directory "notes.org"))
 
 (setq org-capture-templates
       `(("t" "Todo" entry (file+headline ,(concat org-directory "tasks.org") "Tasks")
@@ -338,8 +329,8 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
         ("j" "Journal" entry (file+olp+datetree ,(concat org-directory "notes.org"))
          "* %?\nEntered on %U\n  %i\n  %a")))
 
-;;(setq org-agenda-files (directory-files-recursively org-directory "\\.org$"))
-(setq org-agenda-files '("~/Org/tasks.org"))
+(setq org-agenda-files (directory-files-recursively org-directory "\\.org$"))
+
 ;; Flycheck
 ;;
 (use-package flycheck
@@ -563,11 +554,7 @@ When fixing a typo, avoid pass camel case option to cli program."
 
 (defun text-mode-hook-setup ()
   "Set up text mode."
-  ;; Turn off RUN-TOGETHER option when spell check text.
-  (unless my-disable-wucuo
-    (setq-local ispell-extra-args (my-detect-ispell-args))
-    (my-ensure 'wucuo)
-    (wucuo-start)))
+)
 (add-hook 'text-mode-hook 'text-mode-hook-setup)
 
 (defun my-clean-aspell-dict ()
@@ -740,11 +727,12 @@ When fixing a typo, avoid pass camel case option to cli program."
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(ediff-window-setup-function 'ediff-setup-windows-plain)
- '(lsp-ui-flycheck-list-position 'right)
- '(lsp-ui-flycheck-live-reporting t)
+ '(ediff-window-setup-function (quote ediff-setup-windows-plain))
+ '(lsp-ui-flycheck-list-position (quote right))
+ '(lsp-ui-flycheck-live-reporting t t)
  '(package-selected-packages
-   '(zerodark-theme yasnippet yaml-mode use-package restclient prettier-js org-roam org-journal neotree memoize magit lsp-ui ledger-mode json-mode js2-mode helm graphviz-dot-mode go-projectile go-autocomplete flycheck-ledger exec-path-from-shell evil elixir-mode dashboard cquery company-lsp)))
+   (quote
+    (zerodark-theme yasnippet yaml-mode use-package restclient prettier-js org-roam org-journal neotree memoize magit lsp-ui ledger-mode json-mode js2-mode helm graphviz-dot-mode go-projectile go-autocomplete flycheck-ledger exec-path-from-shell evil elixir-mode dashboard cquery company-lsp))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
