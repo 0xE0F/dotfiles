@@ -14,6 +14,8 @@ set ruler
 "" Auto read when file is changed from outside
 set autoread
 
+set clipboard=unnamedplus
+
 "" Necessary to make ftdetect work on Linux
 filetype off
 "" syntax highlight

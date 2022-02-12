@@ -35,8 +35,9 @@
 					auto-complete go-rename magit prettier-js
 					exec-path-from-shell yaml-mode flycheck neotree helm
 					lsp-mode company company-lsp cquery use-package markdown-mode
-					projectile go-projectile magit json-mode js2-mode
-					restclient elixir-mode lsp-ui flycheck-ledger graphviz-dot-mode clang-format)
+					projectile go-projectile magit json-mode
+					restclient elixir-mode lsp-ui graphviz-dot-mode
+					clang-format python-mode rust-mode)
 )
 
 
@@ -249,6 +250,14 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   :hook ((c-mode) .
 	 (lambda () (add-hook 'before-save-hook
 			'clang-format-buffer))))
+
+
+;; rust mode
+(add-hook 'rust-mode-hook
+          (lambda () (setq indent-tabs-mode nil)))
+(setq rust-format-on-save t)
+(add-hook 'rust-mode-hook #'lsp)
+
 
 ;; =======================
 ;; Org Mode
@@ -719,6 +728,12 @@ When fixing a typo, avoid pass camel case option to cli program."
 )
 
 
+(use-package lsp-mode
+  :hook
+  ((python-mode . lsp)))
+(use-package lsp-ui
+  :commands lsp-ui-mode)
+
 
 ;; Modeline
 (zerodark-setup-modeline-format)
@@ -727,12 +742,11 @@ When fixing a typo, avoid pass camel case option to cli program."
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(ediff-window-setup-function (quote ediff-setup-windows-plain))
- '(lsp-ui-flycheck-list-position (quote right))
+ '(ediff-window-setup-function 'ediff-setup-windows-plain)
+ '(lsp-ui-flycheck-list-position 'right)
  '(lsp-ui-flycheck-live-reporting t t)
  '(package-selected-packages
-   (quote
-    (zerodark-theme yasnippet yaml-mode use-package restclient prettier-js org-roam org-journal neotree memoize magit lsp-ui ledger-mode json-mode js2-mode helm graphviz-dot-mode go-projectile go-autocomplete flycheck-ledger exec-path-from-shell evil elixir-mode dashboard cquery company-lsp))))
+   '(ccls lsp-jedi zerodark-theme yasnippet yaml-mode use-package restclient prettier-js org-roam org-journal neotree memoize magit lsp-ui ledger-mode json-mode js2-mode helm graphviz-dot-mode go-projectile go-autocomplete flycheck-ledger exec-path-from-shell evil elixir-mode dashboard cquery company-lsp)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
