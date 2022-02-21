@@ -32,11 +32,11 @@
 ;; Package mamagment
 
 (setq package-list '(evil ibuffer org recentf dashboard go-mode all-the-icons zerodark-theme json-reformat
-					auto-complete go-rename magit prettier-js
+					auto-complete magit flycheck-golangci-lint
 					exec-path-from-shell yaml-mode flycheck neotree helm
-					lsp-mode company company-lsp cquery use-package markdown-mode
-					projectile go-projectile magit json-mode js2-mode
-					restclient elixir-mode lsp-ui flycheck-ledger graphviz-dot-mode)
+					lsp-mode company ccls use-package markdown-mode
+					projectile go-projectile magit git-gutter json-mode
+					restclient elixir-mode lsp-ui graphviz-dot-mode rustic)
 )
 
 ; list the repositories containing them
@@ -207,9 +207,6 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
     (require 'go-projectile)
 
-    (require 'lsp-ui)
-    (go-guru-hl-identifier-mode)
-
     (add-hook 'before-save-hook 'gofmt-before-save) ; gofmt before every save
     (setq gofmt-command "goimports")                ; gofmt uses invokes goimports
 
@@ -234,7 +231,25 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 		  (lambda () (add-hook 'before-save-hook 'elixir-format nil t)))
 
 
+;; Do not forget to git clone https://github.com/elixir-lsp/elixir-ls
+;; mix elixir_ls.release -o output_dir
+;;(use-package lsp-mode
+;;    :commands lsp
+;;    :ensure t
+;;    :diminish lsp-mode
+;;    :hook
+;;    (elixir-mode . lsp)
+;;    :init
+;;    (add-to-list 'exec-path "/Users/denisb/Dev/tools/elixir-ls/release"))
+
+
 (add-hook 'go-mode-hook 'my-go-mode-hook)
+
+(use-package flycheck-golangci-lint
+  :ensure t
+  :hook (go-mode . flycheck-golangci-lint-setup)
+  :config
+  (setq flycheck-golangci-lint-enable-all t))
 
 
 ;; =======================
@@ -263,6 +278,12 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 ;; C-c / for search
 
 (require 'org)
+
+;; Protects against accidental removal of folded entries
+(setq-default org-catch-invisible-edits 'smart)
+(setq org-ctrl-k-protect-subtree t)
+(setq org-catch-invisible-edits 'smart)
+
 (setq org-log-done t)
 (setq org-directory "~/Org/")
 
@@ -329,17 +350,19 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
 (advice-add 'org-clocktable-indent-string :override #'my-org-clocktable-indent-string)
 
-(global-set-key (kbd "C-c C-j") 'org-capture)
-(setq org-default-notes-file (concat org-directory "notes.org"))
+(global-set-key (kbd "C-c c") 'org-capture)
 
 (setq org-capture-templates
       `(("t" "Todo" entry (file+headline ,(concat org-directory "tasks.org") "Tasks")
          "* TODO %?\n  %U\n  %i\n  %a")
-        ("j" "Journal" entry (file+olp+datetree ,(concat org-directory "notes.org"))
-         "* %?\nEntered on %U\n  %i\n  %a")))
+        ("j" "Journal" entry (file+olp+datetree ,(concat org-directory "journal.org"))
+         "* %?\nEntered on %U\n  %i\n  %a")
+		("n" "Note" entry (file+headline ,(concat org-directory "notes.org") "Notes")
+         "* %? %^G\n%U" :empty-lines 1)
+		))
 
-;;(setq org-agenda-files (directory-files-recursively org-directory "\\.org$"))
-(setq org-agenda-files '("~/Org/tasks.org"))
+(setq org-agenda-files (directory-files-recursively org-directory "\\.org$"))
+
 ;; Flycheck
 ;;
 (use-package flycheck
@@ -433,6 +456,9 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
                 R-mode-hook))
 (add-hook mode '(lambda () (flyspell-mode 1))))
 
+
+;; Rust
+(use-package rustic)
 
 ;; http://blog.binchen.org/posts/what-s-the-best-spell-check-set-up-in-emacs.html
 (defvar my-default-spell-check-language "en_US"
@@ -566,24 +592,9 @@ When fixing a typo, avoid pass camel case option to cli program."
   ;; Turn off RUN-TOGETHER option when spell check text.
   (unless my-disable-wucuo
     (setq-local ispell-extra-args (my-detect-ispell-args))
-    (my-ensure 'wucuo)
-    (wucuo-start)))
+	))
 (add-hook 'text-mode-hook 'text-mode-hook-setup)
 
-(defun my-clean-aspell-dict ()
-  "Clean ~/.aspell.pws (dictionary used by aspell)."
-  (interactive)
-  (let* ((dict (file-truename "~/.aspell.en.pws"))
-         (lines (my-read-lines dict))
-         ;; sort words
-         (aspell-words (sort (cdr lines) 'string<)))
-    (save-buffer)
-    (sit-for 1)
-    (with-temp-file dict
-      (insert (format "%s %d\n%s"
-                        "personal_ws-1.1 en"
-                        (length aspell-words)
-                        (mapconcat 'identity aspell-words "\n"))))))
 
 ;; {{ langtool setup
 (with-eval-after-load 'langtool
@@ -731,6 +742,18 @@ When fixing a typo, avoid pass camel case option to cli program."
   :init (setq markdown-command "multimarkdown")
 )
 
+(use-package git-gutter
+  :ensure t
+  :init
+  (global-git-gutter-mode)
+  :config
+  (setq
+   git-gutter:modified-sign "**"
+   git-gutter:added-sign "++"
+   git-gutter:deleted-sign "--"
+   git-gutter:update-interval 2
+   )
+ )
 
 
 ;; Modeline
@@ -744,7 +767,7 @@ When fixing a typo, avoid pass camel case option to cli program."
  '(lsp-ui-flycheck-list-position 'right)
  '(lsp-ui-flycheck-live-reporting t)
  '(package-selected-packages
-   '(zerodark-theme yasnippet yaml-mode use-package restclient prettier-js org-roam org-journal neotree memoize magit lsp-ui ledger-mode json-mode js2-mode helm graphviz-dot-mode go-projectile go-autocomplete flycheck-ledger exec-path-from-shell evil elixir-mode dashboard cquery company-lsp)))
+   '(git-gutter speed-type zerodark-theme yasnippet yaml-mode use-package restclient prettier-js org-roam org-journal neotree memoize magit lsp-ui ledger-mode json-mode js2-mode helm graphviz-dot-mode go-projectile flycheck-ledger exec-path-from-shell evil elixir-mode dashboard cquery company-lsp)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
