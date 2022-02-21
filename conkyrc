@@ -1,0 +1,126 @@
+--[[
+Conky, a system monitor, based on torsmo
+
+Any original torsmo code is licensed under the BSD license
+
+All code written since the fork of torsmo is licensed under the GPL
+
+Please see COPYING for details
+
+Copyright (c) 2004, Hannu Saransaari and Lauri Hakkarainen
+Copyright (c) 2005-2019 Brenden Matthews, Philip Kovacs, et. al. (see AUTHORS)
+All rights reserved.
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+]]
+
+conky.config = {
+    alignment = 'top_right',
+    background = false,
+    border_width = 1,
+    cpu_avg_samples = 2,
+    default_color = 'white',
+    default_outline_color = 'white',
+    default_shade_color = 'white',
+    double_buffer = true,
+    draw_borders = false,
+    draw_graph_borders = true,
+    draw_outline = false,
+    draw_shades = false,
+    extra_newline = false,
+    font = 'DejaVu Sans Mono:size=12',
+    gap_x = 60,
+    gap_y = 60,
+    minimum_height = 5,
+    minimum_width = 5,
+    net_avg_samples = 2,
+    no_buffers = true,
+    out_to_console = false,
+    out_to_ncurses = false,
+    out_to_stderr = false,
+    out_to_x = true,
+    own_window = true,
+    own_window_class = 'Conky',
+    own_window_type = 'desktop',
+    show_graph_range = false,
+    show_graph_scale = false,
+    stippled_borders = 0,
+    update_interval = 1.0,
+    uppercase = false,
+    use_spacer = 'none',
+    use_xft = true,
+    own_window_argb_visual = true,
+	own_window_argb_value = 50,
+}
+
+conky.text = [[
+${time %H:%M:%S}${alignr}${time %d-%m-%y}
+${voffset -16}${font sans-serif:bold:size=18}${alignc}${time %H:%M}${font}
+${voffset 4}${alignc}${time %A %B %d, %Y}
+${font}${voffset -4}
+${color grey}Uptime:$color $uptime
+
+$hr
+
+${font sans-serif:bold:size=10}CPU ${hr 2}
+${font sans-serif:normal:size=8}${cpugraph cpu1}
+CPU: ${cpu cpu1}% ${cpubar cpu1}
+${color grey}Frequency (in MHz):$color $freq
+
+${font sans-serif:bold:size=10}MEMORY ${hr 2}
+${font sans-serif:normal:size=8}RAM $alignc $mem / $memmax $alignr $memperc%
+$membar
+SWAP $alignc ${swap} / ${swapmax} $alignr ${swapperc}%
+${swapbar}
+
+
+${font Ubuntu:bold:size=10}NETWORK ${hr 2}
+${font sans-serif:normal:size=8}Local IPs:${alignr}External IP:
+${execi 1000 ip a | grep inet | grep -vw lo | grep -v inet6 | cut -d \/ -f1 | sed 's/[^0-9\.]*//g'}  ${alignr}${execi 1000  wget -q -O- http://ipecho.net/plain; echo}
+${font sans-serif:normal:size=8}Down: ${downspeed wlp4s0}  ${alignr}Up: ${upspeed wlp4s0} 
+${color lightgray}${downspeedgraph wlp4s0 80,130 } ${alignr}${upspeedgraph wlp4s0 80,130 }$color
+
+$hr
+${color grey}File systems:
+ / $color${fs_used /}/${fs_size /} (${fs_used_perc /}%) ${fs_bar 6 /}
+
+${color2}${diskiograph_read 50,145}${alignr}${diskiograph_write 50,145}
+
+${color}Inbound: ${tcp_portmon 1 32767 count}  Outbound: ${tcp_portmon 32768 61000 count}${alignr}ALL: ${tcp_portmon 1 65535 count}
+${color1}Inbound Connection ${alignr} Local Service/Port${color}
+${tcp_portmon 1 32767 rhost 0} ${alignr} ${tcp_portmon 1 32767 lservice 0}
+${tcp_portmon 1 32767 rhost 1} ${alignr} ${tcp_portmon 1 32767 lservice 1}
+${tcp_portmon 1 32767 rhost 2} ${alignr} ${tcp_portmon 1 32767 lservice 2}
+${tcp_portmon 1 32767 rhost 3} ${alignr} ${tcp_portmon 1 32767 lservice 3}
+${tcp_portmon 1 32767 rhost 4} ${alignr} ${tcp_portmon 1 32767 lservice 4}
+${color1}Outbound Connection ${alignr} Remote Service/Port${color}
+${tcp_portmon 32768 61000 rhost 0} ${alignr} ${tcp_portmon 32768 61000 rservice 0}
+${tcp_portmon 32768 61000 rhost 1} ${alignr} ${tcp_portmon 32768 61000 rservice 1}
+${tcp_portmon 32768 61000 rhost 2} ${alignr} ${tcp_portmon 32768 61000 rservice 2}
+${tcp_portmon 32768 61000 rhost 3} ${alignr} ${tcp_portmon 32768 61000 rservice 3}
+${tcp_portmon 32768 61000 rhost 4} ${alignr} ${tcp_portmon 32768 61000 rservice 4}
+
+$hr
+
+${color grey}Processes:$color $processes  ${color grey}Running:$color $running_processes
+${font sans-serif:bold:size=8}TOP PROCESSES ${hr}
+${font sans-serif:normal:size=8}Name $alignr PID   CPU%   MEM%${font sans-serif:normal:size=8}
+${top name 1} $alignr ${top pid 1} ${top cpu 1}% ${top mem 1}%
+${top name 2} $alignr ${top pid 2} ${top cpu 2}% ${top mem 2}%
+${top name 3} $alignr ${top pid 3} ${top cpu 3}% ${top mem 3}%
+${top name 4} $alignr ${top pid 4} ${top cpu 4}% ${top mem 4}%
+${top name 5} $alignr ${top pid 5} ${top cpu 5}% ${top mem 5}%
+${top name 6} $alignr ${top pid 6} ${top cpu 6}% ${top mem 6}%
+${top name 7} $alignr ${top pid 7} ${top cpu 7}% ${top mem 7}%
+${top name 8} $alignr ${top pid 8} ${top cpu 8}% ${top mem 8}%
+]]

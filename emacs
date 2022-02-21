@@ -12,7 +12,7 @@
 
 (if (eq system-type 'darwin)
 	(set-frame-font "Iosevka Clam 15")
-	(set-frame-font "Iosevka Clam 13")
+;;	(set-frame-font "Iosevka Light 13")
 )
 
 ;; Frame mode switch
@@ -31,13 +31,57 @@
 ;; =======================
 ;; Package mamagment
 
-(setq package-list '(evil ibuffer org recentf dashboard go-mode all-the-icons zerodark-theme json-reformat
-					auto-complete magit flycheck-golangci-lint
-					exec-path-from-shell yaml-mode flycheck neotree helm
-					lsp-mode company ccls use-package markdown-mode
-					projectile go-projectile magit git-gutter json-mode
-					restclient elixir-mode lsp-ui graphviz-dot-mode rustic)
-)
+(setq package-list '(
+		     ;; Core
+		     org
+		     evil
+		     use-package
+
+		     ;; Themes, visual
+		     dashboard
+		     recentf
+		     all-the-icons
+		     zerodark-theme
+
+		     ;; Tools
+		     magit
+		     git-gutter
+		     json-reformat
+		     exec-path-from-shell
+		     clang-format
+		     restclient
+
+		     ;; Org, projects and navigation
+		     ibuffer
+		     neotree
+		     helm
+		     projectile
+		     go-projectile
+
+		     ;; LSP and auto complete
+		     lsp-mode
+		     lsp-ui
+		     auto-complete
+		     company
+
+		     ;; Checks
+		     flycheck
+		     flycheck-golangci-lint
+
+		     ;; Language modes
+		     go-mode
+		     elixir-mode
+		     rust-mode
+		     python-mode
+		     yaml-mode
+		     markdown-mode
+		     json-mode
+		     graphviz-dot-mode
+		     rustic
+		     ccls
+		     )
+      )
+
 
 ; list the repositories containing them
 (setq package-archives '(
@@ -255,22 +299,22 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 ;; =======================
 ;; C/C++ Mode
 
+(use-package ccls
+  :hook ((c-mode c++-mode objc-mode cuda-mode) .
+         (lambda () (require 'ccls) (lsp))))
 
-(defun cquery//enable ()
-  (condition-case nil
-	  (lsp-cquery-enable)
-	(user-error nil)))
 
-(setq cquery-executable "/home/denis/Developer/Tools/cquery/build/release/bin/cquery")
+(use-package clang-format
+  :hook ((c-mode) .
+	 (lambda () (add-hook 'before-save-hook
+			'clang-format-buffer))))
 
-;;(require 'company-lsp)
-;;(push 'company-lsp company-backends)
-;;(company-mode 1)
 
-(use-package cquery
-			 :commands lsp-cquery-enable
-			 :init (add-hook 'c-mode-hook #'cquery//enable)
-			 (add-hook 'c++-mode-hook #'cquery//enable))
+;; rust mode
+(add-hook 'rust-mode-hook
+          (lambda () (setq indent-tabs-mode nil)))
+(setq rust-format-on-save t)
+(add-hook 'rust-mode-hook #'lsp)
 
 
 ;; =======================
@@ -285,7 +329,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 (setq org-catch-invisible-edits 'smart)
 
 (setq org-log-done t)
-(setq org-directory "~/Org/")
+(setq org-directory "~/Dropbox/Org/")
 
 (setq org-todo-keywords
       '((sequence "TODO(t)" "IN-PROGRESS(i)" "WAITING(w@)" "PAUSED(p)" "|" "DONE(d)" "CANCELED(c@)")))
@@ -589,10 +633,7 @@ When fixing a typo, avoid pass camel case option to cli program."
 
 (defun text-mode-hook-setup ()
   "Set up text mode."
-  ;; Turn off RUN-TOGETHER option when spell check text.
-  (unless my-disable-wucuo
-    (setq-local ispell-extra-args (my-detect-ispell-args))
-	))
+)
 (add-hook 'text-mode-hook 'text-mode-hook-setup)
 
 
@@ -705,26 +746,6 @@ When fixing a typo, avoid pass camel case option to cli program."
   (setq graphviz-dot-indent-width 4)
 )
 
-;; Reddit
-(require 'helm)
-
-(setq reddit-list '("emacs" "programming" "golang" "cpp" "space" "cyberpunk" "australia" "sydney"))
-
-(defun reddit-browser ()
-  "Choose a subreddit to browser using helm"
-  (interactive)
-
-  (helm
-   :prompt "Reddit: "
-   :sources  `((
-		(name       . "File: ")
-		(candidates . ,reddit-list)
-		(action     . (lambda (r)
-				(eww (concat "https://www.m.reddit.com/r/"
-					     r
-					     ))))
-		))))
-
 ;; =======================
 ;; Theme
 ;; Don't forget to run `M-x all-the-icons-install-fonts`
@@ -755,6 +776,12 @@ When fixing a typo, avoid pass camel case option to cli program."
    )
  )
 
+(use-package lsp-mode
+  :hook
+  ((python-mode . lsp)))
+(use-package lsp-ui
+  :commands lsp-ui-mode)
+
 
 ;; Modeline
 (zerodark-setup-modeline-format)
@@ -765,9 +792,9 @@ When fixing a typo, avoid pass camel case option to cli program."
  ;; If there is more than one, they won't work right.
  '(ediff-window-setup-function 'ediff-setup-windows-plain)
  '(lsp-ui-flycheck-list-position 'right)
- '(lsp-ui-flycheck-live-reporting t)
+ '(lsp-ui-flycheck-live-reporting t t)
  '(package-selected-packages
-   '(git-gutter speed-type zerodark-theme yasnippet yaml-mode use-package restclient prettier-js org-roam org-journal neotree memoize magit lsp-ui ledger-mode json-mode js2-mode helm graphviz-dot-mode go-projectile flycheck-ledger exec-path-from-shell evil elixir-mode dashboard cquery company-lsp)))
+   '(ccls lsp-jedi zerodark-theme yasnippet yaml-mode use-package restclient prettier-js org-roam org-journal neotree memoize magit lsp-ui ledger-mode json-mode js2-mode helm graphviz-dot-mode go-projectile go-autocomplete flycheck-ledger exec-path-from-shell evil elixir-mode dashboard cquery company-lsp)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
