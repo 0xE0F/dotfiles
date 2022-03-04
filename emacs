@@ -66,7 +66,6 @@
 
 		     ;; Checks
 		     flycheck
-		     flycheck-golangci-lint
 
 		     ;; Language modes
 		     go-mode
@@ -78,7 +77,6 @@
 		     json-mode
 		     graphviz-dot-mode
 		     rustic
-		     ccls
 		     )
       )
 
@@ -274,40 +272,8 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 (add-hook 'elixir-mode-hook
 		  (lambda () (add-hook 'before-save-hook 'elixir-format nil t)))
 
-
-;; Do not forget to git clone https://github.com/elixir-lsp/elixir-ls
-;; mix elixir_ls.release -o output_dir
-;;(use-package lsp-mode
-;;    :commands lsp
-;;    :ensure t
-;;    :diminish lsp-mode
-;;    :hook
-;;    (elixir-mode . lsp)
-;;    :init
-;;    (add-to-list 'exec-path "/Users/denisb/Dev/tools/elixir-ls/release"))
-
-
 (add-hook 'go-mode-hook 'my-go-mode-hook)
 
-(use-package flycheck-golangci-lint
-  :ensure t
-  :hook (go-mode . flycheck-golangci-lint-setup)
-  :config
-  (setq flycheck-golangci-lint-enable-all t))
-
-
-;; =======================
-;; C/C++ Mode
-
-(use-package ccls
-  :hook ((c-mode c++-mode objc-mode cuda-mode) .
-         (lambda () (require 'ccls) (lsp))))
-
-
-(use-package clang-format
-  :hook ((c-mode) .
-	 (lambda () (add-hook 'before-save-hook
-			'clang-format-buffer))))
 
 
 ;; rust mode
@@ -322,6 +288,9 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 ;; C-c / for search
 
 (require 'org)
+
+;; RETURN will follow links in org-mode files
+(setq org-return-follows-link t)
 
 ;; Protects against accidental removal of folded entries
 (setq-default org-catch-invisible-edits 'smart)
@@ -432,20 +401,30 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
 (use-package lsp-mode
   :ensure t
-  :init
-  (add-hook 'go-mode-hook #'lsp-deferred)
+  :hook ((
+	  c-mode          ; clangd
+	  c++-mode        ; clangd
+	  c-or-c++-mode   ; clangd
+	  go-mode         ; gopls
+	  ) . lsp-deferred)
+
+ ;; :init
+ ;; (add-hook 'go-mode-hook #'lsp-deferred)
   :commands (lsp lsp-deferred)
   :config
-;; use flycheck, not flymake
+  ;; use flycheck, not flymake
   (setq lsp-prefer-flymake nil)
   (setq lsp-enable-snippet nil)
-)
+  (setq lsp-auto-guess-root t)
+  (setq lsp-restart 'auto-restart)
+  (setq read-process-output-max (* 100 1024 1024)) ;; 100MB
+  )
 
 ;; LSP UI
 ;;
 (use-package lsp-ui
   :requires lsp-mode flycheck
-  ;;  :commands lsp-ui-mode
+  :commands lsp-ui-mode
   :config
   (setq lsp-ui-doc-enable nil)
   (setq lsp-ui-doc-use-childframe nil)
@@ -456,8 +435,17 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (setq lsp-ui-flycheck-list-position 'right)
   (setq lsp-ui-flycheck-live-reporting t)
   (setq lsp-ui-peek-enable t)
+  (setq lsp-ui-sideline-show-code-actions t)
   (add-hook 'lsp-mode-hook 'lsp-ui-mode)
   )
+
+(defun my-c-mode-hook ()
+	(define-key c-mode-map (kbd "C-[") 'evil-jump-backward)
+	(define-key c++-mode-map (kbd "C-[") 'evil-jump-backward)
+)
+(add-hook 'c-mode-hook 'my-c-mode-hook)
+(add-hook 'c++-mode-hook 'my-c-mode-hook)
+
 
 ;; optional package to get the error squiggles as you edit
 (use-package flycheck
@@ -712,34 +700,6 @@ When fixing a typo, avoid pass camel case option to cli program."
      (define-key flyspell-mouse-map [mouse-3] #'undefined)))
 
 
-;; JS
-(add-to-list 'auto-mode-alist '("\\.js\\'" . js2-mode))
-(add-hook 'js2-mode-hook (lambda () (flycheck-mode 1)))
-(add-hook 'js2-mode-hook (lambda () (prettier-js-mode 1)))
-
-(add-hook 'js2-mode-hook
-          (defun my-js2-mode-setup ()
-            (flycheck-mode t)
-            (when (executable-find "eslint")
-              (flycheck-select-checker 'javascript-eslint)
-	      )
-	    )
-)
-
-;; Try to highlight most ECMA built-ins
-(setq js2-highlight-level 3)
-
-;; turn off all warnings in js2-mode
-(setq js2-mode-show-parse-errors t)
-(setq js2-mode-show-strict-warnings nil)
-(setq js2-strict-missing-semi-warning nil)
-
-;; https://github.com/prettier/prettier-emacs
-(use-package prettier-js
-  :hook ((js2-mode . prettier-js-mode)
-))
-
-
 (use-package graphviz-dot-mode
   :ensure t
   :config
@@ -776,12 +736,6 @@ When fixing a typo, avoid pass camel case option to cli program."
    )
  )
 
-(use-package lsp-mode
-  :hook
-  ((python-mode . lsp)))
-(use-package lsp-ui
-  :commands lsp-ui-mode)
-
 
 ;; Modeline
 (zerodark-setup-modeline-format)
@@ -794,7 +748,7 @@ When fixing a typo, avoid pass camel case option to cli program."
  '(lsp-ui-flycheck-list-position 'right)
  '(lsp-ui-flycheck-live-reporting t t)
  '(package-selected-packages
-   '(ccls lsp-jedi zerodark-theme yasnippet yaml-mode use-package restclient prettier-js org-roam org-journal neotree memoize magit lsp-ui ledger-mode json-mode js2-mode helm graphviz-dot-mode go-projectile go-autocomplete flycheck-ledger exec-path-from-shell evil elixir-mode dashboard cquery company-lsp)))
+   '(zerodark-theme yasnippet yaml-mode use-package restclient prettier-js org-roam org-journal neotree memoize magit lsp-ui ledger-mode json-mode js2-mode helm graphviz-dot-mode go-projectile go-autocomplete flycheck-ledger exec-path-from-shell evil elixir-mode dashboard cquery company-lsp)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
