@@ -1,6 +1,7 @@
 [user]
-	email = po4ta.duka@gmail.com
+	email =
 	name = 0xe0f
+	signingkey = 4EC9623E647FB37F
 [core]
 	editor = vim
 	excludesfile = ~/.gitignore_global
