@@ -1,35 +1,23 @@
-
-
 ;; =======================
 ;; Visual
 
-(tool-bar-mode -1)                  ; Disable the button bar atop screen
-(scroll-bar-mode -1)                ; Disable scroll bar
-(setq inhibit-startup-screen t)     ; Disable startup screen with graphics
+(when (display-graphic-p)
+    (tool-bar-mode -1)                  ; Disable the button bar atop screen
+    (scroll-bar-mode -1)                ; Disable scroll bar
+    (setq inhibit-startup-screen t)     ; Disable startup screen with graphics
+)
+
 (setq tab-width 4)                  ; Four spaces is a tab
 (setq visible-bell nil)             ; Disable annoying visual bell graphic
 (setq ring-bell-function 'ignore)   ; Disable super annoying audio bell
 
 (if (eq system-type 'darwin)
-	(set-frame-font "Iosevka Clam 15")
+	(set-frame-font "Akkurat Mono 14")
 ;;	(set-frame-font "Iosevka Light 13")
 )
 
-;; Frame mode switch
-;; https://stackoverflow.com/questions/9248996/how-to-toggle-fullscreen-with-emacs-as-default
-(defun switch-fullscreen nil
-  (interactive)
-  (let* ((modes '(nil fullboth fullwidth fullheight))
-         (cm (cdr (assoc 'fullscreen (frame-parameters) ) ) )
-         (next (cadr (member cm modes) ) ) )
-    (modify-frame-parameters
-     (selected-frame)
-     (list (cons 'fullscreen next)))))
-
-(define-key global-map (kbd "C-=") 'switch-fullscreen)
-
 ;; =======================
-;; Package mamagment
+;; Package management
 
 (setq package-list '(
 		     ;; Core
@@ -42,6 +30,9 @@
 		     recentf
 		     all-the-icons
 		     zerodark-theme
+		     solarized-theme
+		     monokai-theme
+		     doom-modeline
 
 		     ;; Tools
 		     magit
@@ -66,6 +57,7 @@
 
 		     ;; Checks
 		     flycheck
+		     wucuo
 
 		     ;; Language modes
 		     go-mode
@@ -77,6 +69,10 @@
 		     json-mode
 		     graphviz-dot-mode
 		     rustic
+		     flycheck-golangci-lint
+
+		     ;; IM
+		     erc
 		     )
       )
 
@@ -89,7 +85,7 @@
 			("melpa stable" . "http://stable.melpa.org/packages/")
 ))
 
-; activate all the packages (in particular autoloads)
+; activate all the packages (in particular auto loads)
 (package-initialize)
 
 ; fetch the list of packages available
@@ -100,8 +96,6 @@
 (dolist (package package-list)
     (unless (package-installed-p package)
           (package-install package)))
-
-;;
 
 
 ;; =======================
@@ -134,8 +128,12 @@
 
 ;; =======================
 ;; Evil mode
-(require 'evil)
-(evil-mode 1)
+
+;; Install Evil and disable C-i to jump forward to restore TAB functionality in Org mode.
+(use-package evil
+             :init (setq evil-want-C-i-jump nil)
+             :config (evil-mode)
+)
 
 (eval-after-load "evil"
 	'(progn
@@ -211,7 +209,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
 (require 'recentf)
 (recentf-mode 1)
-(setq recentf-max-menu-items 25)
+(setq recentf-max-menu-items 35)
 (global-set-key "\C-x\ \C-r" 'recentf-open-files)
 
 
@@ -279,6 +277,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 ;; rust mode
 (add-hook 'rust-mode-hook
           (lambda () (setq indent-tabs-mode nil)))
+
 (setq rust-format-on-save t)
 (add-hook 'rust-mode-hook #'lsp)
 
@@ -322,7 +321,10 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 ;; Include current clocking task in clock reports
 (setq org-clock-report-include-clocking-task t)
 
-;; http://sachachua.com/blog/2007/12/clocking-time-with-emacs-org/
+(setq org-edit-src-content-indentation 2)
+(setq org-src-preserve-indentation nil)
+
+;;  http://sachachua.com/blog/2007/12/clocking-time-with-emacs-org/
 (defun oxeof/org-clock-in-if-starting ()
   "Clock in when the task is marked IN-PROGRESS."
   (when (and (string= org-state "IN-PROGRESS")
@@ -335,7 +337,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 	   (org-todo "IN-PROGRESS"))
 
 (defun oxeof/org-clock-out-if-waiting ()
-  "Clock out when the task is marked WAITING or PAUSED"
+  "Clock out when the task is marked WAITING or PAUSED."
   (when (and (or (string= org-state "WAITING")
 		 (string= org-state "PAUSED")
 		 (string= org-state "CANCELED"))
@@ -366,13 +368,15 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 (global-set-key (kbd "C-c c") 'org-capture)
 
 (setq org-capture-templates
-      `(("t" "Todo" entry (file+headline ,(concat org-directory "tasks.org") "Tasks")
+      `(
+	("t" "Todo" entry (file+headline ,(concat org-directory "tasks.org") "Tasks")
          "* TODO %?\n  %U\n  %i\n  %a")
         ("j" "Journal" entry (file+olp+datetree ,(concat org-directory "journal.org"))
          "* %?\nEntered on %U\n  %i\n  %a")
-		("n" "Note" entry (file+headline ,(concat org-directory "notes.org") "Notes")
+	("n" "Note" entry (file+headline ,(concat org-directory "notes.org") "Notes")
          "* %? %^G\n%U" :empty-lines 1)
-		))
+	)
+)
 
 (setq org-agenda-files (directory-files-recursively org-directory "\\.org$"))
 
@@ -399,6 +403,37 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 ;; LSP Mode
 ;;
 
+;;(defun lsp-tramp-connection@override (local-command &optional generate-error-file-fn)
+;;    "Create LSP stdio connection named name.
+;;LOCAL-COMMAND is either list of strings, string or function which
+;;returns the command to execute."
+;;    (defvar tramp-connection-properties)
+;;    (list :connect (lambda (filter sentinel name environment-fn)
+;;                     (let* ((final-command (lsp-resolve-final-function
+;;                                            local-command))
+;;                            (process-name (generate-new-buffer-name name))
+;;                            (stderr-buf (format "*%s::stderr*" process-name))
+;;                            (err-buf (generate-new-buffer stderr-buf))
+;;                            (process-environment
+;;                             (lsp--compute-process-environment environment-fn))
+;;                            (proc (make-process
+;;                                   :name process-name
+;;                                   :buffer (format "*%s*" process-name)
+;;                                   :command final-command
+;;                                   :connection-type 'pipe
+;;                                   :coding 'no-conversion
+;;                                   :noquery t
+;;                                   :filter filter
+;;                                   :sentinel sentinel
+;;                                   :stderr err-buf
+;;                                   :file-handler t)))
+;;                       (cons proc proc)))
+;;          :test? (lambda () (-> local-command lsp-resolve-final-function
+;;                                lsp-server-present?))))
+;;(advice-add 'lsp-tramp-connection :override #'lsp-tramp-connection@override)
+;;
+;;(executable-find "clangd")
+(setq debug-ignored-errors (cons 'remote-file-error debug-ignored-errors))
 (use-package lsp-mode
   :ensure t
   :hook ((
@@ -417,7 +452,21 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (setq lsp-enable-snippet nil)
   (setq lsp-auto-guess-root t)
   (setq lsp-restart 'auto-restart)
+  (setq lsp-log-io t)
   (setq read-process-output-max (* 100 1024 1024)) ;; 100MB
+  (setq lsp-clients-clangd-args '("-j=7"
+                            "--background-index"
+                            "--clang-tidy"
+                            "--completion-style=detailed"
+                            "--suggest-missing-includes"
+                            "--header-insertion=never"))
+  (lsp-register-client
+      (make-lsp-client :new-connection (lsp-tramp-connection "clangd")
+				   :major-modes '(c-mode c++-mode)
+				   :remote? t
+				   :server-id 'clangd-remote)
+  )
+  (setq lsp-enable-file-watchers nil)
   )
 
 ;; LSP UI
@@ -439,17 +488,38 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (add-hook 'lsp-mode-hook 'lsp-ui-mode)
   )
 
+;; This breaks ESC sequences
 (defun my-c-mode-hook ()
 	(define-key c-mode-map (kbd "C-[") 'evil-jump-backward)
 	(define-key c++-mode-map (kbd "C-[") 'evil-jump-backward)
 )
-(add-hook 'c-mode-hook 'my-c-mode-hook)
-(add-hook 'c++-mode-hook 'my-c-mode-hook)
+;;(add-hook 'c-mode-hook 'my-c-mode-hook)
+;;(add-hook 'c++-mode-hook 'my-c-mode-hook)
 
 
-;; optional package to get the error squiggles as you edit
-(use-package flycheck
-  :ensure t)
+
+;; Using golangci-lint in addition to flycheck
+(use-package flycheck-golangci-lint
+  :ensure t
+  :hook
+  (go-mode . flycheck-golangci-lint-setup)
+  )
+
+;; https://github.com/flycheck/flycheck/issues/1762
+(defvar-local my/flycheck-local-cache nil)
+
+(defun my/flycheck-checker-get (fn checker property)
+  (or (alist-get property (alist-get checker my/flycheck-local-cache))
+	  (funcall fn checker property))
+  ) 
+
+(advice-add 'flycheck-checker-get :around 'my/flycheck-checker-get)
+
+(add-hook 'lsp-managed-mode-hook
+		  (lambda ()
+			(when (derived-mode-p 'go-mode)
+			  (setq my/flycheck-local-cache '((lsp . ((next-checkers . (golangci-lint)))))))))
+
 
 (use-package company
   :ensure t
@@ -471,233 +541,35 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (lambda ()
     (define-key yaml-mode-map "\C-m" 'newline-and-indent)))
 
+
 (add-to-list 'auto-mode-alist '("emacs" . emacs-lisp-mode))
 
 
 ;; =======================
 ;; Spell check
-(dolist (hook '(text-mode-hook
-               org-mode-hook
-               ))
-(add-hook hook (lambda () (flyspell-mode 1))))
+(add-hook 'prog-mode-hook #'wucuo-start)
+(add-hook 'text-mode-hook #'wucuo-start)
 
-(dolist (mode '(emacs-lisp-mode-hook
-                inferior-lisp-mode-hook
-                python-mode-hook
-                go-mode-hook
-                R-mode-hook))
-(add-hook mode '(lambda () (flyspell-mode 1))))
+(setq ispell-program-name "aspell")
+(setq ispell-extra-args '("--sug-mode=ultra" "--camel-case" "--lang=en_US" "--run-together" "--run-together-limit=16"))
+
+
+(dolist (my-spell-hook '(text-mode-hook
+				org-mode-hook
+				prog-mode-hook
+				)
+		)
+(add-hook my-spell-hook (lambda () (flyspell-mode 1))))
+
+(eval-after-load "flyspell"
+  '(progn
+     (define-key flyspell-mouse-map [down-mouse-3] #'flyspell-correct-word)
+     (define-key flyspell-mouse-map [mouse-3] #'undefined))
+)
 
 
 ;; Rust
 (use-package rustic)
-
-;; http://blog.binchen.org/posts/what-s-the-best-spell-check-set-up-in-emacs.html
-(defvar my-default-spell-check-language "en_US"
-  "Language used by aspell and hunspell CLI.")
-
-(with-eval-after-load 'flyspell
-  ;; You can also use "M-x ispell-word" or hotkey "M-$". It pop up a multiple choice
-  ;; @see http://frequal.com/Perspectives/EmacsTip03-FlyspellAutoCorrectWord.html
-  (global-set-key (kbd "C-c s") 'flyspell-auto-correct-word)
-
-  ;; better performance
-  (setq flyspell-issue-message-flag nil))
-
-  ;; flyspell-lazy is outdated and conflicts with latest flyspell
-
-;; Basic Logic Summary:
-;; If (aspell is installed) { use aspell}
-;; else if (hunspell is installed) { use hunspell }
-;; English dictionary is used.
-;;
-;; I prefer aspell because:
-;; - aspell is very stable and easy to install
-;; - looks Kevin Atkinson still get some road map for aspell:
-;; @see http://lists.gnu.org/archive/html/aspell-announce/2011-09/msg00000.html
-(defun my-detect-ispell-args (&optional run-together)
-  "If RUN-TOGETHER is true, spell check the CamelCase words.
-Please note RUN-TOGETHER makes aspell less capable.  So it should be used in `prog-mode-hook' only."
-  (let* (args)
-    (when ispell-program-name
-      (cond
-       ;; use aspell
-       ((string-match "aspell" ispell-program-name)
-        ;; force the English dictionary, support Camel Case spelling check (tested with aspell 0.6)
-        ;; For aspell's option "--lang", "two letter ISO 3166 country code after a underscore" is OPTIONAL.
-        (setq args (list "--sug-mode=ultra" (format "--lang=%s" my-default-spell-check-language)))
-        ;; "--run-together-min" could not be 3, see `check` in "speller_impl.cpp".
-        ;; The algorithm is not precise.
-        ;; Run `echo tasteTableConfig | aspell --lang=en_US -C --run-together-limit=16  --encoding=utf-8 -a` in shell.
-        (when run-together
-          (cond
-           ;; Kevin Atkinson said now aspell supports camel case directly
-           ;; https://github.com/redguardtoo/emacs.d/issues/796
-           ((string-match-p "--.*camel-case"
-                            (shell-command-to-string (concat ispell-program-name " --help")))
-            (setq args (append args '("--camel-case"))))
-
-           ;; old aspell uses "--run-together". Please note we are not dependent on this option
-           ;; to check camel case word. wucuo is the final solution. This aspell options is just
-           ;; some extra check to speed up the whole process.
-           (t
-            (setq args (append args '("--run-together" "--run-together-limit=16")))))))
-
-       ;; use hunspell
-       ((string-match "hunspell" ispell-program-name)
-        (setq args nil))))
-    args))
-
-;; Aspell Setup (recommended):
-;; It's easy to set up aspell. So the details are skipped.
-;;
-;; Hunspell Setup:
-;; 1. Install hunspell from http://hunspell.sourceforge.net/
-;;
-;; 2. Download openoffice dictionary extension from
-;; http://extensions.openoffice.org/en/project/english-dictionaries-apache-openoffice
-;;
-;; 3. Say `dict-en.oxt' is downloaded. Rename it to `dict-en.zip' and unzip
-;; the contents to a temporary folder. Got "en_US.dic" and "en_US.aff" in
-;; that folder.
-;;
-;; 4. Hunspell's option "-d en_US" means finding dictionary "en_US"
-;; Modify `ispell-local-dictionary-alist' to set that option of hunspell
-;;
-;; 5. Copy "en_US.dic" and "en_US.aff" from that temporary folder to
-;; the place for dictionary files. I use "~/usr_local/share/hunspell/".
-;;
-;; 6. Add that folder to shell environment variable "DICPATH"
-;;
-;; 7. Restart emacs so when hunspell is run by ispell/flyspell to make
-;; "DICPATH" take effect
-;;
-;; hunspell searches a dictionary named "en_US" in the path specified by
-;; "DICPATH" by default.
-
-(defvar my-force-to-use-hunspell nil
-  "Force to use hunspell.  If nil, try to detect aspell&hunspell.")
-
-(defun my-configure-ispell-parameters ()
-  "Set `ispell-program-name' and other parameters."
-  (cond
-   ;; use aspell
-   ((and (not my-force-to-use-hunspell) (executable-find "aspell"))
-    (setq ispell-program-name "aspell"))
-
-   ;; use hunspell
-   ((executable-find "hunspell")
-    (setq ispell-program-name "hunspell")
-    (setq ispell-local-dictionary "hunspelldict")
-    (setq ispell-local-dictionary-alist
-          (list (list "hunspelldict" "[[:alpha:]]" "[^[:alpha:]]" "[']" nil (list "-d" my-default-spell-check-language) nil 'utf-8)))
-    ;; new variable `ispell-hunspell-dictionary-alist' is defined in Emacs
-    ;; If it's nil, Emacs tries to automatically set up the dictionaries.
-    (when (boundp 'ispell-hunspell-dictionary-alist)
-      (setq ispell-hunspell-dictionary-alist ispell-local-dictionary-alist)))
-
-   (t (setq ispell-program-name nil)
-      (message "You need install either aspell or hunspell for ispell"))))
-
-;; You could define your own configuration and call `my-configure-ispell-parameters' in "~/.custom.el"
-(my-configure-ispell-parameters)
-
-(defun my-ispell-word-hack (orig-func &rest args)
-  "Use Emacs original arguments when calling `ispell-word'.
-When fixing a typo, avoid pass camel case option to cli program."
-  (let* ((old-ispell-extra-args ispell-extra-args))
-    (ispell-kill-ispell t)
-    ;; use emacs original arguments
-    (setq ispell-extra-args (my-detect-ispell-args))
-    (apply orig-func args)
-    ;; restore our own ispell arguments
-    (setq ispell-extra-args old-ispell-extra-args)
-    (ispell-kill-ispell t)))
-(advice-add 'ispell-word :around #'my-ispell-word-hack)
-(advice-add 'flyspell-auto-correct-word :around #'my-ispell-word-hack)
-
-(defvar my-disable-wucuo nil
-  "Disable wucuo.")
-
-(defun text-mode-hook-setup ()
-  "Set up text mode."
-)
-(add-hook 'text-mode-hook 'text-mode-hook-setup)
-
-
-;; {{ langtool setup
-(with-eval-after-load 'langtool
-  (setq langtool-generic-check-predicate
-        '(lambda (start end)
-           ;; set up for `org-mode'
-           (let* ((begin-regexp "^[ \t]*#\\+begin_\\(src\\|html\\|latex\\|example\\|quote\\)")
-                  (end-regexp "^[ \t]*#\\+end_\\(src\\|html\\|latex\\|example\\|quote\\)")
-                  (case-fold-search t)
-                  (ignored-font-faces '(org-verbatim
-                                        org-block-begin-line
-                                        org-meta-line
-                                        org-special-keyword
-                                        org-property-value
-                                        org-tag
-                                        org-link
-                                        org-table
-                                        org-level-1
-                                        org-document-info))
-                  (rlt t)
-                  th
-                  b e)
-             (save-excursion
-               (goto-char start)
-
-               ;; ignore certain errors by set rlt to nil
-               (cond
-                ((cl-intersection (my-what-face start) ignored-font-faces)
-                 ;; check current font face
-                 (setq rlt nil))
-                ((or (string-match "^ *- $" (buffer-substring (line-beginning-position) (+ start 2)))
-                     (string-match "^ *- $" (buffer-substring (line-beginning-position) (+ end 2))))
-                 ;; dash character of " - list item 1"
-                 (setq rlt nil))
-
-                ((and (setq th (thing-at-point 'evil-WORD))
-                      (or (string-match "^=[^=]*=[,.]?$" th)
-                          (string-match "^\\[\\[" th)
-                          (string-match "^=(" th)
-                          (string-match ")=$" th)
-                          (string= "w3m" th)))
-                 ;; embedded code like =code= or org-link [[http://google.com][google]] or [[www.google.com]]
-                 ;; langtool could finish checking before major mode prepare font face for all texts
-                 (setq rlt nil))
-                (t
-                 ;; inside source block?
-                 (setq b (re-search-backward begin-regexp nil t))
-                 (if b (setq e (re-search-forward end-regexp nil t)))
-                 (if (and b e (< start e)) (setq rlt nil)))))
-             rlt))))
-;; }}
-
-
-(with-eval-after-load 'wucuo
-  ;; {{ wucuo is used to check camel cased code and plain text.  Code is usually written
-  ;; in English. If your code uses other language (Spanish?),
-  ;; Un-comment and modify below two lines:
-
-  ;; (setq wucuo-aspell-language-to-use "en")
-  ;; (setq wucuo-hunspell-dictionary-base-name "en_US")
-
-  ;; }}
-
-  ;; do NOT turn on `flyspell-mode' automatically.
-  ;; check buffer or visible region only
-  ;; spell check buffer every 30 seconds
-  (setq wucuo-update-interval 2))
-
-
-;; Mac OS does not like "mouse2" button
-(eval-after-load "flyspell"
-  '(progn
-     (define-key flyspell-mouse-map [down-mouse-3] #'flyspell-correct-word)
-     (define-key flyspell-mouse-map [mouse-3] #'undefined)))
 
 
 (use-package graphviz-dot-mode
@@ -709,8 +581,21 @@ When fixing a typo, avoid pass camel case option to cli program."
 ;; =======================
 ;; Theme
 ;; Don't forget to run `M-x all-the-icons-install-fonts`
-(use-package all-the-icons)
-(load-theme 'zerodark t)
+(use-package all-the-icons
+  :ensure t
+)
+;;(load-theme 'solarized-dark t)
+;; (load-theme 'zerodark t)
+(load-theme 'monokai t)
+
+;; Modeline
+;;(zerodark-setup-modeline-format)
+(use-package doom-modeline
+  :ensure t
+  :hook (after-init . doom-modeline-mode)
+  :config
+  (display-battery-mode t)
+)
 
 ;; =======================
 ;; Markdown
@@ -734,11 +619,31 @@ When fixing a typo, avoid pass camel case option to cli program."
    git-gutter:deleted-sign "--"
    git-gutter:update-interval 2
    )
- )
+)
 
 
-;; Modeline
-(zerodark-setup-modeline-format)
+;; ERC
+(require 'erc-services)
+(erc-services-mode 1)
+(setq erc-prompt-for-nickserv-password nil)
+
+(load "~/.ercpass")
+
+(global-set-key "\C-ci" (lambda () (interactive)
+                           (erc :server "irc.libera.chat"
+                                :port "6667"
+                                :nick "bdev")))
+
+;;(setq erc-nickserv-passwords
+;;      `(Libera.Chat (bdev . ,libera-password)))
+
+(setq erc-log-channels-directory "~/.emacs.d/logs/")
+(setq erc-save-buffer-on-part nil)
+(setq erc-save-queries-on-quit nil
+      erc-log-write-after-send t
+      erc-log-write-after-insert t)
+
+
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -747,8 +652,10 @@ When fixing a typo, avoid pass camel case option to cli program."
  '(ediff-window-setup-function 'ediff-setup-windows-plain)
  '(lsp-ui-flycheck-list-position 'right)
  '(lsp-ui-flycheck-live-reporting t t)
+ '(org-agenda-files
+   '("/Users/denis/Dropbox/Org/books.org" "/Users/denis/Dropbox/Org/notes.org" "/Users/denis/Dropbox/Org/tasks.org" "/Users/denis/Dropbox/Org/taxes_2016_2017.org" "/Users/denis/Dropbox/Org/taxes_2017_2018.org" "/Users/denis/Dropbox/Org/taxes_2018_2019.org" "/Users/denis/Dropbox/Org/taxes_2020_2021.org" "/Users/denis/Dropbox/Org/videos.org"))
  '(package-selected-packages
-   '(zerodark-theme yasnippet yaml-mode use-package restclient prettier-js org-roam org-journal neotree memoize magit lsp-ui ledger-mode json-mode js2-mode helm graphviz-dot-mode go-projectile go-autocomplete flycheck-ledger exec-path-from-shell evil elixir-mode dashboard cquery company-lsp)))
+   '(flycheck-golangci-lint monokai-theme solarized-theme zerodark-theme yasnippet yaml-mode use-package restclient prettier-js org-roam org-journal neotree memoize magit lsp-ui ledger-mode json-mode js2-mode helm graphviz-dot-mode go-projectile go-autocomplete flycheck-ledger exec-path-from-shell evil elixir-mode dashboard cquery company-lsp)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
