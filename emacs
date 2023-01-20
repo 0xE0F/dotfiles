@@ -55,6 +55,10 @@
 		     auto-complete
 		     company
 
+		     ;; YASnippet
+		     yasnippet
+		     yasnippet-snippets
+
 		     ;; Checks
 		     flycheck
 		     wucuo
@@ -68,6 +72,10 @@
 		     markdown-mode
 		     json-mode
 		     graphviz-dot-mode
+		     dockerfile-mode
+		     slime
+
+		     ;; lintes et al
 		     rustic
 		     flycheck-golangci-lint
 
@@ -278,8 +286,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 (add-hook 'rust-mode-hook
           (lambda () (setq indent-tabs-mode nil)))
 
-(setq rust-format-on-save t)
-(add-hook 'rust-mode-hook #'lsp)
+;; (setq rust-format-on-save t)
 
 
 ;; =======================
@@ -291,13 +298,17 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 ;; RETURN will follow links in org-mode files
 (setq org-return-follows-link t)
 
+;; When set to t, Org assumes that you write outlines by indenting
+;; text in each node to align with the headline, after the stars.
+(setq org-adapt-indentation t)
+
 ;; Protects against accidental removal of folded entries
 (setq-default org-catch-invisible-edits 'smart)
 (setq org-ctrl-k-protect-subtree t)
 (setq org-catch-invisible-edits 'smart)
 
 (setq org-log-done t)
-(setq org-directory "~/Dropbox/Org/")
+(setq org-directory "~/Library/CloudStorage/Dropbox/Org/")
 
 (setq org-todo-keywords
       '((sequence "TODO(t)" "IN-PROGRESS(i)" "WAITING(w@)" "PAUSED(p)" "|" "DONE(d)" "CANCELED(c@)")))
@@ -441,6 +452,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 	  c++-mode        ; clangd
 	  c-or-c++-mode   ; clangd
 	  go-mode         ; gopls
+	  rust-mode       ; rust-analyze
 	  ) . lsp-deferred)
 
  ;; :init
@@ -531,8 +543,11 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
 (use-package yasnippet
   :ensure t
-  :commands yas-minor-mode
-  :hook (go-mode . yas-minor-mode)
+  :hook ((text-mode
+          prog-mode
+          conf-mode
+          snippet-mode) . yas-minor-mode-on)
+  :commands yas-reload-all
 )
 
 ;; =======================
@@ -569,14 +584,17 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
 
 ;; Rust
-(use-package rustic)
+;; (use-package rustic)
 
 
 (use-package graphviz-dot-mode
   :ensure t
   :config
   (setq graphviz-dot-indent-width 4)
-)
+  )
+
+;; Lisp
+(setq inferior-lisp-program "sbcl")
 
 ;; =======================
 ;; Theme
@@ -587,6 +605,14 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 ;;(load-theme 'solarized-dark t)
 ;; (load-theme 'zerodark t)
 (load-theme 'monokai t)
+
+
+(setq monokai-height-minus-1 0.8
+      monokai-height-plus-1 1.1
+      monokai-height-plus-2 1.15
+      monokai-height-plus-3 1.2
+      monokai-height-plus-4 1.3)
+
 
 ;; Modeline
 ;;(zerodark-setup-modeline-format)
@@ -644,6 +670,28 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
       erc-log-write-after-insert t)
 
 
+(defconst ganesha-c-style
+  '((c-tab-always-indent . t)
+    (c-basic-offset  . 4)
+    (c-comment-only-line-offset . 0)
+    (c-hanging-braces-alist . ((brace-entry-open before after)
+                               (substatement-open before after)
+                               (block-close . c-snug-do-while)
+                               (arglist-cont-nonempty)))
+    (c-cleanup-list . (brace-else-brace
+		       brace-elseif-brace))
+    (c-offsets-alist . ((statement-block-intro . +)
+                        (knr-argdecl-intro     . 0)
+                        (substatement-open     . +)
+                        (substatement-label    . 0)
+                        (label                 . 0)
+                        (brace-list-open . +)
+                        (statement-cont        . +)))
+    (indent-tabs-mode nil))
+  "Ganesha C Style")
+
+(c-add-style "ganesha" ganesha-c-style)
+
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -652,10 +700,8 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
  '(ediff-window-setup-function 'ediff-setup-windows-plain)
  '(lsp-ui-flycheck-list-position 'right)
  '(lsp-ui-flycheck-live-reporting t t)
- '(org-agenda-files
-   '("/Users/denis/Dropbox/Org/books.org" "/Users/denis/Dropbox/Org/notes.org" "/Users/denis/Dropbox/Org/tasks.org" "/Users/denis/Dropbox/Org/taxes_2016_2017.org" "/Users/denis/Dropbox/Org/taxes_2017_2018.org" "/Users/denis/Dropbox/Org/taxes_2018_2019.org" "/Users/denis/Dropbox/Org/taxes_2020_2021.org" "/Users/denis/Dropbox/Org/videos.org"))
  '(package-selected-packages
-   '(flycheck-golangci-lint monokai-theme solarized-theme zerodark-theme yasnippet yaml-mode use-package restclient prettier-js org-roam org-journal neotree memoize magit lsp-ui ledger-mode json-mode js2-mode helm graphviz-dot-mode go-projectile go-autocomplete flycheck-ledger exec-path-from-shell evil elixir-mode dashboard cquery company-lsp)))
+   '(slime yasnippet-snippets flycheck-golangci-lint monokai-theme solarized-theme zerodark-theme yasnippet yaml-mode use-package restclient prettier-js org-roam org-journal neotree memoize magit lsp-ui ledger-mode json-mode js2-mode helm graphviz-dot-mode go-projectile go-autocomplete flycheck-ledger exec-path-from-shell evil elixir-mode dashboard cquery company-lsp)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
